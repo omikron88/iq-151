@@ -1,0 +1,197 @@
+PAMÌ
+=====
+0000-0002 - volné, mono vyuít pøi RST 0
+0003      - I/O bajt (69 standartnì)
+0004-0005 - konec RAM (7FFF pro 32kB)
+0006      - èasování klávesnice a blikání kurzoru
+0007      - 0=kurzor bliká, jinak blokováno
+0008-000A - èítaè 20 ms; zastaveno pøi zamaskovaném pøerušení 50 Hz 8259
+000B      - kód znaku na kterı ukazuje kurzor
+000C-000D - adresa místa na obrazovce na které ukazuje kurzor ve Videoram
+000E      - sloupec, ve kterém je právì kurzor (00-1F - 00-3F pro Video 64)
+000F      - øádek, ve kterém je právì kurzor
+0010      - 1=grafické znaky, 0=normální reim
+0011      - 1=znaky v inverzi, 0=normální reim
+0012      - poèet posunovanıch znakù v pøíkazech DC a IL
+0013      - délka stránky (01-1F)
+0014      - øádkování (o kolik dolù se posune kurzor pøi odøádkování CR - znak 0D)
+0015-0016 - návratová adresa monitoru pro pøíkaz R
+0017-0018 - vıška a délka tónu pro rutinu F973
+0019-001A - adresa bufferu pro magnetofon
+001B      - bit 7 urèuje polaritu signálu na pásce (standartnì 0), ostatní bity jsou èíslo
+	    úmìrné délce periody modulovaného kmitoètu (1kHz)
+001C      - èas pro èekací smyèku F5A2 (mezi bloky na pásce)
+001D-001E - adresa teplého startu (Basicu pøípadnì jiného jazyka podle pøipojeného modulu)
+001F      - poèet znakù na øádek - 20/40h Video32/64
+0020-0021 - adresa zaèátku VIDEORAM EC00 pro Video32, E800 pro Video64
+0022-002D - adresa, do které se ukládají hodnoty registrù procesoru
+          22 - F
+          23 - A
+          24 - C
+          25 - B
+          26 - E
+          27 - D
+          28 - L
+          29 - H
+          2A+2B - SP
+          2C+2D - PC
+
+0045-015F - promìnné basic (pokud je pøipojen)
+0160-021B - promìnné kreslièe (pokud je pøipojen)
+
+0179      - ?? (dává se tam 0 pøi startu/resetu)
+
+-----7FC1 - zásobník (pro 32kB)
+7FC2-7FDF - tabulka skokù na podprogramy obsluhující periferie
+7FE0-7FFF - tabulka skokù na podprogramy obsluhující pøerušení
+
+A800-???? - Modul G k Basic 6, realizuje pøíkazy jemné grafiky
+          - musí se inicializivat (call hex(A800))
+          - pøed kadı pøíkaz jemné grafiky se musí dát call hex(A803)
+C000-C7FF - EPROM kreslièe (2kB)
+C800-E7FF - Basic6, Basic G nebo jinı modul v (E)PROM (8kB)
+E800-EFFF - (2kB) RAM VIDEO 64
+EC00-EFFF - (1kB) RAM VIDEO 32
+
+F000-FFFF - 2x2kB - monitor v EPROM (standartnì pouze do F9C2, zbytek FF - volno)
+
+------------- pøi zapojeném BASIC6 --------------------
+
+0050-009F - oblast vyuívaná pøi vkládání pøíkazového a programového øádku Basicu - max. 80 znakù
+
+00A4-00A5 - adresa zaèátku oblasti deklarované 2.parametrem pøíkazu CLEAR
+00A6-00A7 - adresa konce oblasti CLEAR (USR+STRING)
+
+00BA-00BB - konec oblasti STRING deklarované 1.parametrem pøíkazu CLEAR
+
+00C6      - èíslo aktuálnì provádìného øádku (FFFF pro pøímı pøíkaz)
+
+00CC-00CD - adresa poèátku zásobníku Basicu (SP registr)
+00CE-00CF - poèátek programového bufferu (016A bez kreslièe, 021C s kreslièem)
+00D0-00D1 - adresa poèátku oblasti, do které se ukládají hodnoty jednoduchıch promìnnıch
+00D2-00D3 - adresa poèátku oblasti, do které se ukládají identifikátory a hodnoty indexovanıch promìnnıch
+00D4-00D5 - adresa poèátku prázdné oblasti
+00D6-00D7 - poloha posledních vybranıch dat ze souboru DATA
+
+
+00EA      - urèuje na kterou periferii bude vstup/vıstup
+		00 - obrazovka
+                01 - dìrná páska
+                02 - magnetofon
+                03 - tiskárna
+00EB-00EE - základ èísla pro funkci RND (násada pseudonáhodného èísla)
+   
+00FE      - pokud je zde nula, lze pozastavit/pøerušit program (klávesou CTRL/CTRL+C)
+
+0100-0159 - oblast vyuívaná pøi nahrávání programu z magnetofonu nebo z dìrovaèe
+015A-015B - adresa rutiny pøes kterou se provádí vstup znaku
+015C-015D - adresa rutiny pøes kterou se provádí vıstup znaku
+
+-----------------------------------------------------------------------------
+
+
+PORTY:
+======
+
+80 - port MHB 3212
+   bit 7 - volnı pro uivatele
+   bit 6 - volnı pro uivatele
+   bit 5 - volnı pro uivatele
+   bit 4 - volnı pro uivatele
+   bit 3 - volnı pro uivatele
+   bit 2 - pouit pro vnitøní øízení
+   bit 1 - pouit pro vnitøní øízení
+   bit 0 - pøepínání EPROM pøi inicializaci (na adresu F800)
+         
+84 - klávesnice - 8255 A0-A7
+85 - klávesnice - 8255 B0-B7
+86 - klávesnice - 8255 C
+     C7 - vstup z magnetofonu 1 pøes zesilovaè
+        - tlaèítko FB
+     C6 - vstup z magnetofonu 2 (není zpracován programem)
+        - tlaèítko FA
+     C5 - vstup kmitoètu 1kHz
+        - tlaèítko CTRL
+     C4 - zem
+        - tlaèítko SH
+     C3 - vıstup na repro pøes MBA 810
+     C2 - ovládání spínacího tranzistoru start stop pro magnetofon 2 (není pøipojeno ke konektoru)
+     C1 - ovládání spínacího tranzistoru start stop pro magnetofon 1 (není pøipojeno ke konektoru) (KC 507)
+     C0 - vıstup na magnetofon M1 pøes klopnı obvod
+87 - klávesnice - 8255 øídící port
+
+88 - port øadièe pøerušení 8259, A=0
+89 - port øadièe pøerušení 8259, A=1
+     bit 7 - kmitoèet 16 kHz
+     bit 6 - kmitoèet 50 Hz
+     bit 5 - tlaèítko BR (pøes Schmidtùv klopnı obvod)
+     bit 4 - volnı, konektor sbìrnice pin 43
+     bit 3 - volnı, konektor sbìrnice pin 42 
+     bit 2 - volnı, konektor sbìrnice pin 41
+     bit 1 - volnı, konektor sbìrnice pin 40
+     bit 0 - volnı, konektor sbìrnice pin 39
+   - ádosti o pøerušení na pin pøes hradlo s otevøenım kolektorem spínané do L
+
+90 - dìrovaè pásky ????
+
+modul Grafik (8255+3212)
+D0 - Grafik - X*8
+D1 - Grafik - Y
+D2 - Grafik - pøi bitovém pøístupu další 4 bity + øízení
+D3 - Grafik
+D4 - Grafik - ètení hodnoty z videoram
+
+modul sestyk (8251)
+E4 - SESTYK
+E5 - SESTYK
+
+modul MS151(A) - XY4131
+F0 - kresliè
+F1 - kresliè
+F2 - kresliè
+F3 - kresliè
+F4 - kresliè - 0=pero nahoru, 1=pero dolù
+
+modul STAPER (8255)
+F8 - port A - èteèka dìrné pásky
+F9 - port B - dìrovaè/tiskárna
+FA - port C - øídící signály + pøepínání dìrovaè/tiskárna (C6=1 dìrovaè, C7=1 tiskárna)
+FB - øídící registr
+
+FC-FF - Video 64 - in: 254 je video64, 255 není pøítomen
+                 - out 00 zakáe monost pøepnutí na 32 zn/ø, 01 povolí pøepínání 64/32 zn/ø
+
+
+PODPROGRAMY
+
+F000 - kód v C (øídící kód CTRL + nìco)
+     - vypíše na obrazovku/tiskárnu stisknuté tlaèítko vèetnì øídících kláves
+F003 - toté co F007 ale vstup v A
+F007 - vstup v C
+     - tisk znaku na obrazovku/tiskárnu
+     - 0 - 1F se bere jako øídící kód pro obrazovku
+
+
+F1DF - smyèka monitoru èekjící na vstup znaku z periferie, která je urèená 2 nejnišími bity I/O bajtu v podprogramu F62B
+     - vıstupní periferie se vyhodnocuje na F64B
+     - standartní nastavení 0003 je 69 (0110 1001) - vstup klávesnice vıstup obrazovka
+
+F484 - pøíkaz R (bez parametru) monitoru - RETURN
+     - návrat na adresu co je na 001D-001E - v pøípadì zasunutého BASIC 6 je tam CAD6 teplı start Basicu
+
+F488 - tisk textu na obrazovku/tiskárnu, zaèátek v HL, bit 7 posledního znaku 1 (nezobrazuje inverzní znaky)
+
+F5B0 - odøádkování o poèet øádkù urèenıch adresou 14 na obrazovku/tiskárnu
+
+F5D0 - vıpis HL v hexa na obrazovku/tiskárnu
+F5D5 - vıpis A v hexa na obrazovku/tiskárnu
+
+F5FA - vıpis HL v hexa na tiskárnu (vyhodnocuje 2 nejvyšší bity I/O bajtu)
+F5FF - vıpis A v hexa na tiskárnu (vyhodnocuje 2 nejvyšší bity I/O bajtu)
+
+F623?8 - pøepnutí periferie
+F643 - pøepnutí periferie
+F647 - tisk znaku následujícího za instrukcí Call F647 na obrazovku/tiskárnu
+
+F8AA - Èeká na stisk tlaèítka, po stisku pipne a dá do A
+F8C9 - kód klávesy do A a C bez èekání na stisk, kdy nic nestiknuto jr v A 8A
