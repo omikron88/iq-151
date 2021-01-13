@@ -631,6 +631,18 @@ public class Iq extends Thread
             case 0x89:
                 ic.writePortA1(value);
                 break;
+            case 0xEC:
+                mem.SwitchAmos(value & 0x03);
+                break;
+            case 0xED:
+                mem.SwitchAmos(value & 0x03);
+                break;    
+            case 0xEE:
+                mem.SwitchAmos(value & 0x03);
+                break;    
+            case 0xEF:
+                mem.SwitchAmos(value & 0x03);
+                break;    
             case 0xD0:
                 graf.D0 = value;
                 break;

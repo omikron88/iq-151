@@ -21,6 +21,9 @@ public final class Memory {
     private byte[][] Basic6 = new byte[8][PAGE_SIZE];
     private byte[][] BasicG = new byte[8][PAGE_SIZE];
     private byte[][] BasicG2 = new byte[4][PAGE_SIZE];
+    private byte[][] Pascal = new byte[16][PAGE_SIZE];
+    private byte[][] Pascal1 = new byte[16][PAGE_SIZE];
+    private byte[][] Assembler = new byte[16][PAGE_SIZE];
 
     private byte[][] readPages = new byte[64][];
     private byte[][] writePages = new byte[64][];
@@ -127,6 +130,40 @@ public final class Memory {
             readPages[44] = BasicG2[0];
             writePages[44] = fakeROM;
         }
+        if (cf.getMain()==cf.AMOS) { // Amos - Assembler jako výchozí
+            readPages[47] = Assembler[15];
+            writePages[47] = fakeROM;
+            readPages[46] = Assembler[14];
+            writePages[46] = fakeROM;
+            readPages[45] = Assembler[13];
+            writePages[45] = fakeROM;
+            readPages[44] = Assembler[12];
+            writePages[44] = fakeROM;
+            readPages[43] = Assembler[11];
+            writePages[43] = fakeROM;
+            readPages[42] = Assembler[10];
+            writePages[42] = fakeROM;
+            readPages[41] = Assembler[9];
+            writePages[41] = fakeROM;
+            readPages[40] = Assembler[8];
+            writePages[40] = fakeROM;
+            readPages[39] = Assembler[7];
+            writePages[39] = fakeROM;
+            readPages[38] = Assembler[6];
+            writePages[38] = fakeROM;
+            readPages[37] = Assembler[5];
+            writePages[37] = fakeROM;
+            readPages[36] = Assembler[4];
+            writePages[36] = fakeROM;
+            readPages[35] = Assembler[3];
+            writePages[35] = fakeROM;
+            readPages[34] = Assembler[2];
+            writePages[34] = fakeROM;
+            readPages[33] = Assembler[1];
+            writePages[33] = fakeROM;
+            readPages[32] = Assembler[0];
+            writePages[32] = fakeROM;
+        }
     }  
     
     public void setBootstrap(boolean b) {
@@ -141,6 +178,129 @@ public final class Memory {
             readPages[1] = writePages[1] = Ram[1];   
         }
             
+    }
+    
+    public void SwitchAmos(int hodn) {
+        if (hodn == 0) {
+            readPages[47] = Pascal[15];
+            writePages[47] = fakeROM;
+            readPages[46] = Pascal[14];
+            writePages[46] = fakeROM;
+            readPages[45] = Pascal[13];
+            writePages[45] = fakeROM;
+            readPages[44] = Pascal[12];
+            writePages[44] = fakeROM;
+            readPages[43] = Pascal[11];
+            writePages[43] = fakeROM;
+            readPages[42] = Pascal[10];
+            writePages[42] = fakeROM;
+            readPages[41] = Pascal[9];
+            writePages[41] = fakeROM;
+            readPages[40] = Pascal[8];
+            writePages[40] = fakeROM;
+            readPages[39] = Pascal[7];
+            writePages[39] = fakeROM;
+            readPages[38] = Pascal[6];
+            writePages[38] = fakeROM;
+            readPages[37] = Pascal[5];
+            writePages[37] = fakeROM;
+            readPages[36] = Pascal[4];
+            writePages[36] = fakeROM;
+            readPages[35] = Pascal[3];
+            writePages[35] = fakeROM;
+            readPages[34] = Pascal[2];
+            writePages[34] = fakeROM;
+            readPages[33] = Pascal[1];
+            writePages[33] = fakeROM;
+            readPages[32] = Pascal[0];
+            writePages[32] = fakeROM;
+        }
+        if (hodn == 1) {
+            readPages[47] = Pascal1[15];
+            writePages[47] = fakeROM;
+            readPages[46] = Pascal1[14];
+            writePages[46] = fakeROM;
+            readPages[45] = Pascal1[13];
+            writePages[45] = fakeROM;
+            readPages[44] = Pascal1[12];
+            writePages[44] = fakeROM;
+            readPages[43] = Pascal1[11];
+            writePages[43] = fakeROM;
+            readPages[42] = Pascal1[10];
+            writePages[42] = fakeROM;
+            readPages[41] = Pascal1[9];
+            writePages[41] = fakeROM;
+            readPages[40] = Pascal1[8];
+            writePages[40] = fakeROM;
+            readPages[39] = Pascal1[7];
+            writePages[39] = fakeROM;
+            readPages[38] = Pascal1[6];
+            writePages[38] = fakeROM;
+            readPages[37] = Pascal1[5];
+            writePages[37] = fakeROM;
+            readPages[36] = Pascal1[4];
+            writePages[36] = fakeROM;
+            readPages[35] = Pascal1[3];
+            writePages[35] = fakeROM;
+            readPages[34] = Pascal1[2];
+            writePages[34] = fakeROM;
+            readPages[33] = Pascal1[1];
+            writePages[33] = fakeROM;
+            readPages[32] = Pascal1[0];
+            writePages[32] = fakeROM;
+        }
+        if (hodn == 2) {
+            readPages[47] = Assembler[15];
+            writePages[47] = fakeROM;
+            readPages[46] = Assembler[14];
+            writePages[46] = fakeROM;
+            readPages[45] = Assembler[13];
+            writePages[45] = fakeROM;
+            readPages[44] = Assembler[12];
+            writePages[44] = fakeROM;
+            readPages[43] = Assembler[11];
+            writePages[43] = fakeROM;
+            readPages[42] = Assembler[10];
+            writePages[42] = fakeROM;
+            readPages[41] = Assembler[9];
+            writePages[41] = fakeROM;
+            readPages[40] = Assembler[8];
+            writePages[40] = fakeROM;
+            readPages[39] = Assembler[7];
+            writePages[39] = fakeROM;
+            readPages[38] = Assembler[6];
+            writePages[38] = fakeROM;
+            readPages[37] = Assembler[5];
+            writePages[37] = fakeROM;
+            readPages[36] = Assembler[4];
+            writePages[36] = fakeROM;
+            readPages[35] = Assembler[3];
+            writePages[35] = fakeROM;
+            readPages[34] = Assembler[2];
+            writePages[34] = fakeROM;
+            readPages[33] = Assembler[1];
+            writePages[33] = fakeROM;
+            readPages[32] = Assembler[0];
+            writePages[32] = fakeROM;
+        }
+        if (hodn == 3) {
+            readPages[32] = writePages[32] = Ram[32];
+            readPages[33] = writePages[33] = Ram[33];
+            readPages[34] = writePages[34] = Ram[34];
+            readPages[35] = writePages[35] = Ram[35];
+            readPages[36] = writePages[36] = Ram[36];
+            readPages[37] = writePages[37] = Ram[37];
+            readPages[38] = writePages[38] = Ram[38];
+            readPages[39] = writePages[39] = Ram[39];
+            readPages[40] = writePages[40] = Ram[40];
+            readPages[41] = writePages[41] = Ram[41];
+            readPages[42] = writePages[42] = Ram[42];
+            readPages[43] = writePages[43] = Ram[43];
+            readPages[44] = writePages[44] = Ram[44];
+            readPages[45] = writePages[45] = Ram[45];
+            readPages[46] = writePages[46] = Ram[46];
+            readPages[47] = writePages[47] = Ram[47];
+        }    
     }
     
     public byte readByte(int address) {
@@ -180,6 +340,15 @@ public final class Memory {
         }        
         if (!loadRomAsFile(romsDirectory + cf.getBasic6Rom(), BasicG2, 0, PAGE_SIZE * 4)) {
             loadRomAsResource("/roms/BasicG2.rom", BasicG2, 0, PAGE_SIZE * 4);
+        }
+        if (!loadRomAsFile(romsDirectory + cf.getAssemblerRom(), Assembler, 0, PAGE_SIZE * 16)) {
+            loadRomAsResource("/roms/Assembler.rom", Assembler, 0, PAGE_SIZE * 16);
+        }
+        if (!loadRomAsFile(romsDirectory + cf.getPascalRom(), Pascal, 0, PAGE_SIZE * 16)) {
+            loadRomAsResource("/roms/Pascal.rom", Pascal, 0, PAGE_SIZE * 16);
+        }
+        if (!loadRomAsFile(romsDirectory + cf.getPascal1Rom(), Pascal1, 0, PAGE_SIZE * 16)) {
+            loadRomAsResource("/roms/Pascal1.rom", Pascal1, 0, PAGE_SIZE * 16);
         }
     }
 

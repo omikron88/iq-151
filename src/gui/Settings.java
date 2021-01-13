@@ -31,7 +31,7 @@ public class Settings extends javax.swing.JDialog {
     
     public void showDialog(Config conf) {
         cf = conf;
-        setSize(210, 310);
+        setSize(220, 385);
 
          if (cf.grafik) {
             bGrafik.setSelected(true);
@@ -66,6 +66,10 @@ public class Settings extends javax.swing.JDialog {
                 bBasicG.setSelected(true);
                 break;
             }
+            case 3: {
+                bAmos.setSelected(true);
+                break;
+            }
         }
 
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -97,6 +101,7 @@ public class Settings extends javax.swing.JDialog {
         bNone = new javax.swing.JRadioButton();
         bBasic6 = new javax.swing.JRadioButton();
         bBasicG = new javax.swing.JRadioButton();
+        bAmos = new javax.swing.JRadioButton();
         bGrafik = new javax.swing.JCheckBox();
         bOk = new javax.swing.JButton();
 
@@ -108,6 +113,7 @@ public class Settings extends javax.swing.JDialog {
         getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED));
+        jPanel1.setPreferredSize(new java.awt.Dimension(200, 390));
 
         RamPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("RAM Size"));
 
@@ -209,6 +215,14 @@ public class Settings extends javax.swing.JDialog {
             }
         });
 
+        MainGroup.add(bAmos);
+        bAmos.setText("Amos (Ass+Pas)");
+        bAmos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bAmosActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout MainPanelLayout = new javax.swing.GroupLayout(MainPanel);
         MainPanel.setLayout(MainPanelLayout);
         MainPanelLayout.setHorizontalGroup(
@@ -218,7 +232,8 @@ public class Settings extends javax.swing.JDialog {
                 .addGroup(MainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(bBasicG)
                     .addComponent(bBasic6)
-                    .addComponent(bNone))
+                    .addComponent(bNone)
+                    .addComponent(bAmos))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         MainPanelLayout.setVerticalGroup(
@@ -229,6 +244,8 @@ public class Settings extends javax.swing.JDialog {
                 .addComponent(bBasic6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(bBasicG, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(bAmos, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -271,16 +288,17 @@ public class Settings extends javax.swing.JDialog {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(RamPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(VideoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
-                .addComponent(MainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(MainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(bGrafik)
                     .addComponent(bOk))
-                .addGap(85, 85, 85))
+                .addContainerGap(18, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel1);
+        jPanel1.getAccessibleContext().setAccessibleName("");
     }// </editor-fold>//GEN-END:initComponents
 
     private void bOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bOkActionPerformed
@@ -288,44 +306,49 @@ public class Settings extends javax.swing.JDialog {
         setModal(false);
     }//GEN-LAST:event_bOkActionPerformed
 
-    private void b32KBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b32KBActionPerformed
-        cf.setMem64(false);
-        ResetNeeded = true;
-    }//GEN-LAST:event_b32KBActionPerformed
+    private void bGrafikStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_bGrafikStateChanged
+        if (bGrafik.isSelected()){cf.grafik=true;}else{cf.grafik=false;};
+    }//GEN-LAST:event_bGrafikStateChanged
 
-    private void b64KBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b64KBActionPerformed
-        cf.setMem64(true);
+    private void bAmosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bAmosActionPerformed
+        cf.setMain(cf.AMOS);
         ResetNeeded = true;
-    }//GEN-LAST:event_b64KBActionPerformed
-
-    private void b32ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b32ActionPerformed
-        cf.setVideo(cf.VIDEO32);
-        ResetNeeded = true;
-    }//GEN-LAST:event_b32ActionPerformed
-
-    private void b64ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b64ActionPerformed
-        cf.setVideo(cf.VIDEO64);
-        ResetNeeded = true;
-    }//GEN-LAST:event_b64ActionPerformed
-
-    private void bNoneActionPerformed(java.awt.event.ActionEvent evt) {
-        cf.setMain(cf.NONE);
-        ResetNeeded = true;
-    }
-
-    private void bBasic6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bBasic6ActionPerformed
-        cf.setMain(cf.BASIC6);
-        ResetNeeded = true;
-    }//GEN-LAST:event_bBasic6ActionPerformed
+    }//GEN-LAST:event_bAmosActionPerformed
 
     private void bBasicGActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bBasicGActionPerformed
         cf.setMain(cf.BASICG);
         ResetNeeded = true;
     }//GEN-LAST:event_bBasicGActionPerformed
 
-    private void bGrafikStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_bGrafikStateChanged
-        if (bGrafik.isSelected()){cf.grafik=true;}else{cf.grafik=false;};
-    }//GEN-LAST:event_bGrafikStateChanged
+    private void bBasic6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bBasic6ActionPerformed
+        cf.setMain(cf.BASIC6);
+        ResetNeeded = true;
+    }//GEN-LAST:event_bBasic6ActionPerformed
+
+    private void bNoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bNoneActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_bNoneActionPerformed
+
+    private void b64ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b64ActionPerformed
+        cf.setVideo(cf.VIDEO64);
+        ResetNeeded = true;
+    }//GEN-LAST:event_b64ActionPerformed
+
+    private void b32ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b32ActionPerformed
+        cf.setVideo(cf.VIDEO32);
+        ResetNeeded = true;
+    }//GEN-LAST:event_b32ActionPerformed
+
+    private void b64KBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b64KBActionPerformed
+        cf.setMem64(true);
+        ResetNeeded = true;
+    }//GEN-LAST:event_b64KBActionPerformed
+
+    private void b32KBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b32KBActionPerformed
+        cf.setMem64(false);
+        ResetNeeded = true;
+    }//GEN-LAST:event_b32KBActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup MainGroup;
@@ -338,6 +361,7 @@ public class Settings extends javax.swing.JDialog {
     private javax.swing.JRadioButton b32KB;
     private javax.swing.JRadioButton b64;
     private javax.swing.JRadioButton b64KB;
+    private javax.swing.JRadioButton bAmos;
     private javax.swing.JRadioButton bBasic6;
     private javax.swing.JRadioButton bBasicG;
     private javax.swing.JCheckBox bGrafik;

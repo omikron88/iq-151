@@ -18,6 +18,8 @@ public class Config {
     public final byte NONE = 0;
     public final byte BASIC6 = 1;
     public final byte BASICG = 2;
+    public final byte AMOS = 3;
+
     
     private byte video = VIDEO32; 
     private byte main = BASICG;
@@ -29,6 +31,10 @@ public class Config {
     private String basic6Rom = "Basic6.rom";
     private String basicGRom = "BasicG.rom";
     private String basicG2Rom = "BasicG2.rom";
+    private String assemblerRom = "Assembler.rom";
+    private String pascalRom = "Pascal.rom";
+    private String pascal1Rom = "Pascal1.rom";
+
 
     public byte getVideo() {
         return video;
@@ -91,5 +97,14 @@ public class Config {
     }
    public String getBasicG2Rom() {
         return basicG2Rom;
+    }
+   public String getAssemblerRom() {
+        return assemblerRom;
+    }
+   public String getPascalRom() {
+        return pascalRom;
+    }
+   public String getPascal1Rom() {
+        return pascal1Rom;
     }
 }
