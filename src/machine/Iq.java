@@ -41,6 +41,7 @@ public class Iq extends Thread
     private Pio8255 pio;
     private Tape tap;
     private Grafik graf;
+    private Staper stap;
     private Debugger deb;
     
     public FileInputStream reader=null;
@@ -92,6 +93,7 @@ public class Iq extends Thread
         key.setPic(ic);
         graf = new Grafik();
         graf.Init();
+        stap = new Staper();
         
         tap = new Tape(this);
         
