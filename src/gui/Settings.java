@@ -31,13 +31,19 @@ public class Settings extends javax.swing.JDialog {
     
     public void showDialog(Config conf) {
         cf = conf;
-        setSize(220, 385);
+        setSize(220, 480);
 
          if (cf.grafik) {
             bGrafik.setSelected(true);
         }
          else {
             bGrafik.setSelected(false);            
+        }
+         if (cf.staper) {
+            bStaper.setSelected(true);
+        }
+         else {
+            bStaper.setSelected(false);            
         }
         if (cf.getMem64()) {
             b64KB.setSelected(true);
@@ -102,7 +108,9 @@ public class Settings extends javax.swing.JDialog {
         bBasic6 = new javax.swing.JRadioButton();
         bBasicG = new javax.swing.JRadioButton();
         bAmos = new javax.swing.JRadioButton();
+        AuxPanel = new javax.swing.JPanel();
         bGrafik = new javax.swing.JCheckBox();
+        bStaper = new javax.swing.JCheckBox();
         bOk = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -234,7 +242,7 @@ public class Settings extends javax.swing.JDialog {
                     .addComponent(bBasic6)
                     .addComponent(bNone)
                     .addComponent(bAmos))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(46, Short.MAX_VALUE))
         );
         MainPanelLayout.setVerticalGroup(
             MainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -249,12 +257,42 @@ public class Settings extends javax.swing.JDialog {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        AuxPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Aux module"));
+
         bGrafik.setText("Grafik");
         bGrafik.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 bGrafikStateChanged(evt);
             }
         });
+
+        bStaper.setText("Staper");
+        bStaper.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                bStaperStateChanged(evt);
+            }
+        });
+
+        javax.swing.GroupLayout AuxPanelLayout = new javax.swing.GroupLayout(AuxPanel);
+        AuxPanel.setLayout(AuxPanelLayout);
+        AuxPanelLayout.setHorizontalGroup(
+            AuxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(AuxPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(AuxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(bGrafik)
+                    .addComponent(bStaper))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        AuxPanelLayout.setVerticalGroup(
+            AuxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(AuxPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(bGrafik)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(bStaper)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
         bOk.setText("Ok");
         bOk.addActionListener(new java.awt.event.ActionListener() {
@@ -269,15 +307,15 @@ public class Settings extends javax.swing.JDialog {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(AuxPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(RamPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(VideoPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(MainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(bGrafik)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(MainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(bOk)))
                 .addContainerGap())
         );
@@ -290,11 +328,11 @@ public class Settings extends javax.swing.JDialog {
                     .addComponent(VideoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(MainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(bGrafik)
-                    .addComponent(bOk))
-                .addContainerGap(18, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(AuxPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(bOk)
+                .addGap(54, 54, 54))
         );
 
         getContentPane().add(jPanel1);
@@ -349,8 +387,13 @@ public class Settings extends javax.swing.JDialog {
         ResetNeeded = true;
     }//GEN-LAST:event_b32KBActionPerformed
 
+    private void bStaperStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_bStaperStateChanged
+        if (bStaper.isSelected()){cf.staper=true;}else{cf.staper=false;};
+    }//GEN-LAST:event_bStaperStateChanged
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel AuxPanel;
     private javax.swing.ButtonGroup MainGroup;
     private javax.swing.JPanel MainPanel;
     private javax.swing.ButtonGroup RamGroup;
@@ -367,6 +410,7 @@ public class Settings extends javax.swing.JDialog {
     private javax.swing.JCheckBox bGrafik;
     private javax.swing.JRadioButton bNone;
     private javax.swing.JButton bOk;
+    private javax.swing.JCheckBox bStaper;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 }

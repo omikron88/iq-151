@@ -13,6 +13,7 @@ public class Config {
     public final byte VIDEO64 = 1;
 
     public boolean grafik = true;
+    public boolean staper = false;
     public boolean V64ena32=false;
    
     public final byte NONE = 0;
@@ -66,6 +67,16 @@ public class Config {
         }
     }
     
+    public boolean getStaper() {
+        return staper;
+    }
+    
+    public void setStaper(boolean b) {
+        if (b!=staper) {
+            staper = b;
+        }
+    }
+
     public boolean getMem64() {
         return mem64;
     }

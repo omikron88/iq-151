@@ -6,19 +6,14 @@ package machine;
 
 import gui.JIQScreen;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import gui.Debugger;
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.PrintWriter;
 
 
 /**
@@ -80,6 +75,7 @@ public class Iq extends Thread
         utils.Config.LoadConfig();
         cfg.setMain((byte)utils.Config.mainmodule);
         cfg.setGrafik(utils.Config.grafik);
+        cfg.setStaper(utils.Config.staper);
         cfg.setMem64(utils.Config.mem64);
         cfg.setVideo((byte)utils.Config.video64);
         mem = new Memory(cfg);

@@ -252,6 +252,7 @@ public class JIQ151 extends javax.swing.JFrame {
         Config cfg=m.getConfig();
         utils.Config.mainmodule=cfg.getMain();
         utils.Config.grafik=cfg.getGrafik();
+        utils.Config.staper=cfg.getStaper();
         utils.Config.mem64=cfg.getMem64();
         utils.Config.video64=cfg.getVideo();
         utils.Config.SaveConfig();
