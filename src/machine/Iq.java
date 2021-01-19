@@ -710,7 +710,7 @@ public class Iq extends Thread
             tapestart = pio.PeripheralReadBit(pio.PP_PortC, 1);
             if (tapestart) { tap.tapeStart(); }
             else           { tap.tapeStop(); }
-         }    
+        }
     }
 
     @Override

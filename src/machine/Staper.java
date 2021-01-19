@@ -16,8 +16,7 @@ import java.util.logging.Logger;
  *
  * @author user
  */
-public class Staper implements Pio8255Notify {
-    private final Pio8255 pio;
+public class Staper {
     private String path;
     
     public Staper() {
@@ -30,7 +29,6 @@ public class Staper implements Pio8255Notify {
             }
         }
         
-        pio = new Pio8255(this);        
     }
     
     private String getMyPath() {
@@ -41,50 +39,6 @@ public class Staper implements Pio8255Notify {
             retVal = retVal.substring(0, pos + 1);
         }
         return retVal;
-    }
-
-    @Override
-    public void OnCpuWriteA() {
-    }
-
-    @Override
-    public void OnCpuWriteB() {
-    }
-
-    @Override
-    public void OnCpuWriteC() {
-    }
-
-    @Override
-    public void OnCpuWriteCL() {
-    }
-
-    @Override
-    public void OnCpuWriteCH() {
-    }
-
-    @Override
-    public void OnCpuWriteCWR(int value) {
-    }
-
-    @Override
-    public void OnCpuReadA() {
-    }
-
-    @Override
-    public void OnCpuReadB() {
-    }
-
-    @Override
-    public void OnCpuReadC() {
-    }
-
-    @Override
-    public void OnCpuReadCL() {
-    }
-
-    @Override
-    public void OnCpuReadCH() {
     }
 
 }
