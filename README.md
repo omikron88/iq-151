@@ -12,3 +12,4 @@ Features:
 * Video 32, Video 64
 * Grafik
 * Amos (both Assembler and Pascal)
+* Debugger (with Z80 mnemonics)
