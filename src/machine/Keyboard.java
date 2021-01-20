@@ -157,6 +157,30 @@ public final class Keyboard implements KeyListener {
             case KeyEvent.VK_8:        // 8
                 row[0] &= rb7;
                 break;
+            case KeyEvent.VK_NUMPAD1:        // 1
+                row[0] &= rb0;
+                break;
+            case KeyEvent.VK_NUMPAD2:        // 2
+                row[0] &= rb1;
+                break;
+            case KeyEvent.VK_NUMPAD3:        // 3
+                row[0] &= rb2;
+                break;
+            case KeyEvent.VK_NUMPAD4:        // 4
+                row[0] &= rb3;
+                break;    
+            case KeyEvent.VK_NUMPAD5:        // 5
+                row[0] &= rb4;
+                break;
+             case KeyEvent.VK_NUMPAD6:        // 6
+                row[0] &= rb5;
+                break;
+            case KeyEvent.VK_NUMPAD7:        // 7
+                row[0] &= rb6;
+                break;
+            case KeyEvent.VK_NUMPAD8:        // 8
+                row[0] &= rb7;
+                break;    
 
             case KeyEvent.VK_Q:         // Q
                 row[1] &= rb0;
@@ -232,8 +256,10 @@ public final class Keyboard implements KeyListener {
             case KeyEvent.VK_COMMA:     // ,
                 row[3] &= rb7;
                 break;
-
             case KeyEvent.VK_9:         // 9
+                row[4] &= rb0;
+                break;
+            case KeyEvent.VK_NUMPAD9:         // 9
                 row[4] &= rb0;
                 break;
             case KeyEvent.VK_O:         // O
@@ -259,6 +285,9 @@ public final class Keyboard implements KeyListener {
                 break;
                 
             case KeyEvent.VK_0:         // 0
+                row[5] &= rb0;
+                break;
+            case KeyEvent.VK_NUMPAD0:         // 0
                 row[5] &= rb0;
                 break;
             case KeyEvent.VK_P:         // P
@@ -376,6 +405,30 @@ public final class Keyboard implements KeyListener {
             case KeyEvent.VK_8:        // 8
                 row[0] |= sb7;
                 break;
+            case KeyEvent.VK_NUMPAD1:        // 1
+                row[0] |= sb0;
+                break;
+            case KeyEvent.VK_NUMPAD2:        // 2
+                row[0] |= sb1;
+                break;
+            case KeyEvent.VK_NUMPAD3:        // 3
+                row[0] |= sb2;
+                break;
+            case KeyEvent.VK_NUMPAD4:        // 4
+                row[0] |= sb3;
+                break;
+            case KeyEvent.VK_NUMPAD5:        // 5
+                row[0] |= sb4;
+                break;
+            case KeyEvent.VK_NUMPAD6:        // 6
+                row[0] |= sb5;
+                break;
+            case KeyEvent.VK_NUMPAD7:        // 7
+                row[0] |= sb6;
+                break;
+            case KeyEvent.VK_NUMPAD8:        // 8
+                row[0] |= sb7;
+                break;
 
             case KeyEvent.VK_Q:         // Q
                 row[1] |= sb0;
@@ -455,6 +508,9 @@ public final class Keyboard implements KeyListener {
             case KeyEvent.VK_9:         // 9
                 row[4] |= sb0;
                 break;
+            case KeyEvent.VK_NUMPAD9:         // 9
+                row[4] |= sb0;
+                break;
             case KeyEvent.VK_O:         // O
                 row[4] |= sb1;
                 break;
@@ -478,6 +534,9 @@ public final class Keyboard implements KeyListener {
                 break;
                 
             case KeyEvent.VK_0:         // 0
+                row[5] |= sb0;
+                break;
+            case KeyEvent.VK_NUMPAD0:         // 0
                 row[5] |= sb0;
                 break;
             case KeyEvent.VK_P:         // P

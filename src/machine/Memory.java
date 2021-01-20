@@ -18,6 +18,10 @@ public final class Memory {
     private byte[][] VRam = new byte[2][PAGE_SIZE];
     private byte[][] Chars = new byte[1][PAGE_SIZE];
     private byte[][] Monitor = new byte[4][PAGE_SIZE];
+    private byte[][] MonStd = new byte[4][PAGE_SIZE];
+    private byte[][] MonDis = new byte[4][PAGE_SIZE];
+    private byte[][] MonKom = new byte[4][PAGE_SIZE];
+    private byte[][] MonFel = new byte[4][PAGE_SIZE];
     private byte[][] Basic6 = new byte[8][PAGE_SIZE];
     private byte[][] BasicG = new byte[8][PAGE_SIZE];
     private byte[][] BasicG2 = new byte[4][PAGE_SIZE];
@@ -38,13 +42,13 @@ public final class Memory {
     
     public void Reset(boolean dirty) {
         if (dirty) {
-            char c = 0;
+            char c = 255;  // bylo 0
             int a = 0;
             for(int i=0; i<64; i++) {
                 for(int j=0; j<PAGE_SIZE; j++) {
                     Ram[i][j] = (byte) c;
-                    a = a++ & 127;
-                    if (a==0) { c ^= 255; };
+                //    a = a++ & 127;
+                //    if (a==0) { c ^= 255; };
                 }
             }
         }
@@ -55,7 +59,7 @@ public final class Memory {
         
         int er = cf.getMem64() ? 64:32;
         
-        for(int i=0; i<63; i++) {
+        for(int i=0; i<60; i++) {
             if (i<er) {
                 readPages[i] = writePages[i] = Ram[i];   
             }
@@ -65,7 +69,32 @@ public final class Memory {
             }   
         }
         
-        // Monitor        
+        // Monitor 
+        if (cf.getMonitor()==cf.Mstandard) { 
+           Monitor[0] = MonStd[0]; 
+           Monitor[1] = MonStd[1]; 
+           Monitor[2] = MonStd[2]; 
+           Monitor[3] = MonStd[3];
+        }
+        if (cf.getMonitor()==cf.Mdisassembler) { 
+           Monitor[0] = MonDis[0]; 
+           Monitor[1] = MonDis[1]; 
+           Monitor[2] = MonDis[2]; 
+           Monitor[3] = MonDis[3];
+        }
+         if (cf.getMonitor()==cf.MCPMkom) { 
+           Monitor[0] = MonKom[0]; 
+           Monitor[1] = MonKom[1]; 
+           Monitor[2] = MonKom[2]; 
+           Monitor[3] = MonKom[3];
+        }
+          if (cf.getMonitor()==cf.MCPMfel) { 
+           Monitor[0] = MonFel[0]; 
+           Monitor[1] = MonFel[1]; 
+           Monitor[2] = MonFel[2]; 
+           Monitor[3] = MonFel[3];
+        }
+        
         readPages[63] = Monitor[3];
         writePages[63] = fakeROM;
         readPages[62] = Monitor[2];
@@ -169,9 +198,9 @@ public final class Memory {
     public void setBootstrap(boolean b) {
         if (b) {
             readPages[0] = Monitor[2];
-            writePages[0] = fakeROM;
+            writePages[0] = Ram[0];
             readPages[1] = Monitor[3];
-            writePages[1] = fakeROM;
+            writePages[1] = Ram[1];
         }
         else {
             readPages[0] = writePages[0] = Ram[0];   
@@ -329,10 +358,19 @@ public final class Memory {
         if (!loadRomAsFile(romsDirectory + cf.getCharsRom(), Chars, 0, PAGE_SIZE * 1)) {
             loadRomAsResource("/roms/chars.bin", Chars, 0, PAGE_SIZE * 1);
         }
-        if (!loadRomAsFile(romsDirectory + cf.getMonitorRom(), Monitor, 0, PAGE_SIZE * 4)) {
-            loadRomAsResource("/roms/Monitor.rom", Monitor, 0, PAGE_SIZE * 4);
+        if (!loadRomAsFile(romsDirectory + cf.getMonStdRom(), MonStd, 0, PAGE_SIZE * 4)) {
+            loadRomAsResource("/roms/Monitor-std.rom", MonStd, 0, PAGE_SIZE * 4);
         }
-        if (!loadRomAsFile(romsDirectory + cf.getBasic6Rom(), Monitor, 0, PAGE_SIZE * 8)) {
+        if (!loadRomAsFile(romsDirectory + cf.getMonDisRom(), MonDis, 0, PAGE_SIZE * 4)) {
+            loadRomAsResource("/roms/Monitor-dis.rom", MonDis, 0, PAGE_SIZE * 4);
+        }
+        if (!loadRomAsFile(romsDirectory + cf.getMonKomRom(), MonKom, 0, PAGE_SIZE * 4)) {
+            loadRomAsResource("/roms/Monitor-cpm-Variel.rom", MonKom, 0, PAGE_SIZE * 4);
+        }
+        if (!loadRomAsFile(romsDirectory + cf.getMonFelRom(), MonFel, 0, PAGE_SIZE * 4)) {
+            loadRomAsResource("/roms/Monitor-cpm-030188.rom", MonFel, 0, PAGE_SIZE * 4);
+        }
+        if (!loadRomAsFile(romsDirectory + cf.getBasic6Rom(), Basic6, 0, PAGE_SIZE * 8)) {
             loadRomAsResource("/roms/Basic6.rom", Basic6, 0, PAGE_SIZE * 8);
         }        
         if (!loadRomAsFile(romsDirectory + cf.getBasicGRom(), BasicG, 0, PAGE_SIZE * 8)) {
