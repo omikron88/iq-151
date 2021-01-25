@@ -14,6 +14,8 @@ import java.util.logging.Logger;
 import gui.Debugger;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Arrays;
+import javax.swing.JLabel;
 
 
 /**
@@ -41,7 +43,7 @@ public class Iq extends Thread
     private Pio8255 pio;
     private Tape tap;
     private Grafik graf;
-    private Staper stap;
+    private SDRom sdrom;
     private Debugger deb;
     
     public FileInputStream reader=null;
@@ -63,6 +65,9 @@ public class Iq extends Thread
     private final int[] znsadainv = new int[1024];
     private final int[] dstg = new int[1024];
     private final int[] dstg64 = new int[2048];
+    public JLabel lblLed=null;
+    
+    private boolean bSav=false;
     
     public Iq() {                
         img = new BufferedImage(sirka, vyska, BufferedImage.TYPE_INT_RGB);
@@ -76,7 +81,7 @@ public class Iq extends Thread
         utils.Config.LoadConfig();
         cfg.setMain((byte)utils.Config.mainmodule);
         cfg.setGrafik(utils.Config.grafik);
-        cfg.setStaper(utils.Config.staper);
+        cfg.setSDRom(utils.Config.sdrom);
         cfg.setMem64(utils.Config.mem64);
         cfg.setVideo((byte)utils.Config.video64);
         mem = new Memory(cfg);
@@ -93,8 +98,10 @@ public class Iq extends Thread
         key.setPic(ic);
         graf = new Grafik();
         graf.Init();
-        stap = new Staper();
-        
+        sdrom=null;
+        if(cfg.getSDRom()){
+         sdrom = new SDRom(this);         
+        }
         tap = new Tape(this);
         
         paused = true;
@@ -109,6 +116,14 @@ public class Iq extends Thread
         return deb;
     }
     
+    public SDRom getSDRom(){
+        return sdrom;
+    }
+
+    public void setSDRomLED(JLabel inLed){
+        lblLed=inLed;
+        sdrom.setLED(lblLed);
+    }
     
     public void setConfig(Config c) {
         if (!cfg.equals(c)) {
@@ -142,7 +157,18 @@ public class Iq extends Thread
     }
     
     public final void Reset(boolean dirty) {
+        if (cfg.getSDRom()) {
+            if (sdrom != null) {
+                sdrom.stopThread();
+            }
+            sdrom = new SDRom(this);
+            sdrom.setLED(lblLed);
+            sdrom.start();
+        }
         mem.Reset(dirty);
+        if (zobrgr) {
+            Arrays.fill(graf.GVRam, (byte)0);              
+        }
         port80 = 0;
         mem.setBootstrap(true);
         clk.reset();
@@ -506,38 +532,9 @@ public class Iq extends Thread
 
     @Override
     public int inPort(int port) {
+        int rVal=0xff;
         clk.addTstates(4);
-        port &= 0xff;
-        if(port==0xFA){
-         bReadyToSend=true;
-         return 255; //pin 0 - ctecka ready pro zapis znaku do IQ
-         //return 8; //pin 3 - IQ ready pro prijmuti znaku
-        }
-        if (port == 0xF8) {
-            if (bReadyToSend) {
-                int ch;
-                try {
-                    if ((ch = reader.read()) != -1) {
-                        lastchar=ch;
-                        return ch;
-                    }
-                } catch (IOException ex) {
-                    Logger.getLogger(Iq.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-        
-        /*
-        String strINfile= utils.Config.getMyPath()+"in.txt";
-        try {
-            PrintWriter f = new PrintWriter(new java.io.OutputStreamWriter(new java.io.FileOutputStream(strINfile,true)));
-            f.println(String.format("In: %02X (%04X)", port,cpu.getRegPC()));
-            f.close();
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Iq.class.getName()).log(Level.SEVERE, null, ex);
-        }
-         */
-        //System.out.println(String.format("In: %02X (%04X)", port,cpu.getRegPC()));
+        port &= 0xff;       
         switch (port) {
             case 0x84:
                 return pio.CpuRead(pio.PP_PortA);
@@ -553,6 +550,29 @@ public class Iq extends Thread
                 return ic.readPortA1(); 
             case 0xD4:
                 return graf.rpD4();
+                         
+            case 0xF8:
+                if (cfg.getSDRom()) {
+                    rVal=sdrom.getPio().CpuRead(sdrom.getPio().PP_PortA);
+                    sdrom.yield();
+                }
+                return rVal;
+            case 0xF9:
+                if (cfg.getSDRom()) {
+                    rVal=sdrom.getPio().CpuRead(sdrom.getPio().PP_PortB);
+                }
+                return rVal;
+            case 0xFA:
+                if (cfg.getSDRom()) {  
+                    rVal = sdrom.getPio().CpuRead(sdrom.getPio().PP_PortC);                    
+                    sdrom.yield();
+                }
+                return rVal;
+            case 0xFB:
+                if (cfg.getSDRom()) {
+                    rVal=sdrom.getPio().CpuRead(sdrom.getPio().PP_CWR);
+                }
+                return rVal;
             case 0xFC:
             case 0xFD:
             case 0xFE:
@@ -567,45 +587,7 @@ public class Iq extends Thread
     @Override
     public void outPort(int port, int value) {
         clk.addTstates(4);
-        port &= 0xff;
-        if (port == 0xFB) {
-          int deb=0;
-          deb++;
-          } 
-        if (port == 0xF9) {
-            if (value != 0) {
-                int nVal = 127 & value;
-                try {
-                    if (writer == null) {
-                        try {
-                            writer = new FileOutputStream(utils.Config.getMyPath() + "tapeout.txt");
-                            writer.write(nVal);
-                        } catch (FileNotFoundException ex) {
-                            writer = null;
-                        }
-                    } else {
-
-                        writer.write(nVal);
-
-                    }
-                } catch (IOException ex) {
-                    Logger.getLogger(Iq.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-
-         
-        /*
-        String strINfile= utils.Config.getMyPath()+"out.txt";
-        try {
-            PrintWriter f = new PrintWriter(new java.io.OutputStreamWriter(new java.io.FileOutputStream(strINfile,true)));
-            f.println(String.format("Out: %02X,%02X (%04X)", port,value,cpu.getRegPC()));
-            f.close();
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Iq.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        */
-        //System.out.println(String.format("Out: %02X,%02X (%04X)", port,value,cpu.getRegPC()));
+        port &= 0xff;       
         switch (port) {
             case 0x80:
                 port80 = value;
@@ -655,7 +637,50 @@ public class Iq extends Thread
                 break;    
             case 0xD4:
                 graf.wpD4(value);
-                break;   
+                break; 
+                     case 0xF8:
+                if (cfg.getSDRom()) {
+                    sdrom.getPio().CpuWrite(sdrom.getPio().PP_PortA, value);
+                    sdrom.yield();
+                }
+                break;
+            case 0xF9:
+                if (cfg.getSDRom()) {
+                    sdrom.getPio().CpuWrite(sdrom.getPio().PP_PortB, value);
+                    sdrom.yield();
+                }
+                break;
+            case 0xFA:
+                if (cfg.getSDRom()) {
+                    sdrom.getPio().CpuWrite(sdrom.getPio().PP_PortC, value);                    
+                    sdrom.yield();
+                }
+                break;
+            case 0xFB:
+                if (cfg.getSDRom()) {
+                    synchronized (sdrom) {
+                        sdrom.getPio().CpuWrite(sdrom.getPio().PP_CWR, value);
+                    }
+                    //pokud prijde postupne 14 a pak 13, tak chce IQ ukladat
+                    if ((!bSav) && (value == 14)) {
+                        bSav = true;
+                    } else {
+                        if ((bSav)&&(value == 13)) {
+                            //ukladani z IQ do SDROM 
+                            if(sdrom.itrInter.isFinished()){
+                                sdrom.newInterrupt();
+                            }
+                            if (!sdrom.itrInter.isRunning()) {
+                                sdrom.itrInter.start();
+                            }
+                        } else {
+                            bSav = false;
+                        }
+                    }
+
+                }
+                break;
+
             case 0xFC:
             case 0xFD:
             case 0xFE:

@@ -50,7 +50,7 @@ public class Config {
     //ukladani settings
     public static int mainmodule=2;
     public static boolean grafik=true;
-    public static boolean staper=false;
+    public static boolean sdrom=false;
     public static int video64=0;
     public static boolean mem64=false;
     
@@ -93,7 +93,7 @@ public class Config {
      
      prop.setProperty("MAINMODULE", String.valueOf(mainmodule));
      prop.setProperty("GRAFIK", String.valueOf(grafik));
-     prop.setProperty("STAPER", String.valueOf(staper));
+     prop.setProperty("SDROM", String.valueOf(sdrom));
      prop.setProperty("VIDEO64", String.valueOf(video64));   
      prop.setProperty("MEM64", String.valueOf(mem64)); 
 
@@ -154,7 +154,7 @@ public class Config {
         
         mainmodule=Integer.parseInt(prop.getProperty("MAINMODULE"));
         grafik=Boolean.parseBoolean(prop.getProperty("GRAFIK"));
-        staper=Boolean.parseBoolean(prop.getProperty("STAPER"));
+        sdrom=Boolean.parseBoolean(prop.getProperty("SDROM"));
         video64=Integer.parseInt(prop.getProperty("VIDEO64"));
         mem64=Boolean.parseBoolean(prop.getProperty("MEM64"));
   

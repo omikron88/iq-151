@@ -5,8 +5,14 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.LayoutManager;
 import java.io.IOException;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import machine.Config;
 import machine.Iq;
 
@@ -24,6 +30,9 @@ public class JIQ151 extends javax.swing.JFrame {
     private final ExtendedFileFilter saveFlt = new ExtendedFileFilter
             ("CSW files",saveExt);    
     
+    
+    public JPanel ledPanel=null;
+    public JLabel lblLed=null;
     private Iq m;
     private JIQScreen scr;
     private Debugger deb;
@@ -35,6 +44,32 @@ public class JIQ151 extends javax.swing.JFrame {
     public JIQ151() {
         initComponents();
         initEmulator();
+        if(utils.Config.sdrom){
+            addLEDbar();
+        }else{
+            removeLEDbar();
+        }
+    }
+
+    private void addLEDbar() {
+        if (ledPanel == null) {
+            lblLed = new JLabel("• ");
+            lblLed.setForeground(Color.GRAY);
+            m.setSDRomLED(lblLed);
+            JPanel bottomPanel = new JPanel(new BorderLayout());
+            bottomPanel.add(lblLed, BorderLayout.LINE_END);
+            ledPanel = new JPanel(new BorderLayout());
+            ledPanel.add(bottomPanel, BorderLayout.PAGE_END);
+            this.getContentPane().add(ledPanel);                       
+        }
+        setSize(566, 620);
+    }
+    
+    private void removeLEDbar(){
+        if(ledPanel!=null){
+            this.getContentPane().remove(ledPanel);
+            ledPanel=null;
+        }
         setSize(566, 593);
     }
 
@@ -75,6 +110,8 @@ public class JIQ151 extends javax.swing.JFrame {
                 formWindowClosing(evt);
             }
         });
+
+        jMenuBar1.setMaximumSize(new java.awt.Dimension(282, 500));
 
         jMenu6.setText("Reset");
         jMenu6.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -224,6 +261,9 @@ public class JIQ151 extends javax.swing.JFrame {
     }//GEN-LAST:event_mSaveActionPerformed
 
     private void mExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mExitActionPerformed
+        if(m.getSDRom()!=null){
+            m.getSDRom().stopThread();
+        }
         System.exit(0);
     }//GEN-LAST:event_mExitActionPerformed
 
@@ -252,7 +292,12 @@ public class JIQ151 extends javax.swing.JFrame {
         Config cfg=m.getConfig();
         utils.Config.mainmodule=cfg.getMain();
         utils.Config.grafik=cfg.getGrafik();
-        utils.Config.staper=cfg.getStaper();
+        utils.Config.sdrom=cfg.getSDRom();     
+        if(cfg.getSDRom()){
+            addLEDbar();
+        }else{
+            removeLEDbar();
+        }       
         utils.Config.mem64=cfg.getMem64();
         utils.Config.video64=cfg.getVideo();
         utils.Config.SaveConfig();
@@ -263,7 +308,9 @@ public class JIQ151 extends javax.swing.JFrame {
 
     private void bResetActionPerformed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_bResetActionPerformed
             m.Reset(false);
-            m.clearScreen();            
+            m.clearScreen(); 
+            jMenu6.setSelected(false);
+            this.requestFocusInWindow(); 
     }//GEN-LAST:event_bResetActionPerformed
 
     private void bDebuggerActionPerformed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_bDebuggerActionPerformed
@@ -290,7 +337,6 @@ public class JIQ151 extends javax.swing.JFrame {
 
     private void initEmulator() {
         m = new Iq();
-
         scr = new JIQScreen();
         m.setScreen(scr);
         scr.setImage(m.getImage());
@@ -299,7 +345,7 @@ public class JIQ151 extends javax.swing.JFrame {
         bsav=new BinSave(m);
         m.setDebugger(deb);
         getContentPane().add(scr, BorderLayout.CENTER);
-        pack();
+        pack();         
         addKeyListener(m.getKeyboard());
         m.start();
         

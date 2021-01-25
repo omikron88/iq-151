@@ -16,7 +16,7 @@
 */
 package machine;
 
-final class Pio8255 {
+public final class Pio8255 {
 
     public final int PP_PortA   = 0;
     public final int PP_PortB   = 1;
@@ -109,7 +109,7 @@ private final int INTEB_MASK    = (1 << INTEB);
 	private boolean InteAout; // PC6
 	private boolean InteB;    // PC2
         
-        private static Pio8255Notify on;
+        private Pio8255Notify on;
 //---------------------------------------------------------------------------
         
 /**
