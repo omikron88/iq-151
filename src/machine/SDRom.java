@@ -63,6 +63,7 @@ public class SDRom extends Thread implements Pio8255Notify {
             prijemsouboru();
             bRunning = false;
             bFinished = true;
+            sdrom.m.bSav=false;
         }
     }
 
@@ -70,20 +71,17 @@ public class SDRom extends Thread implements Pio8255Notify {
         m = inM; //parent
         initSDRoot();
         pioStapper = new Pio8255(this);
-        newInterrupt();
         bRunning = false;
         bStopped = true;
     }
     
     public void newInterrupt(){
-       itrInter = new Interrupt(this); 
+       itrInter = new Interrupt(this);
     }
     
-    public void startInterrupt(){
-        if(itrInter!=null){
-          itrInter.start();
-        }
-    }
+     public void startInterrupt(){
+       itrInter.start();
+     }
    
     public void setLED(JLabel inLed) {
         lblLED = inLed;
@@ -285,6 +283,7 @@ public class SDRom extends Thread implements Pio8255Notify {
     //cte 1 bajt z IQ151 pomoci bit-bangu
     int readbyte() {
         blinkLED();
+        int nRetByte = 0;
         //poslu, ze jsem ready na cteni
         if (bit2status == 0) {
             pioStapper.PeripheralChangeBit(pioStapper.PP_PortC, 2, false);
@@ -298,9 +297,8 @@ public class SDRom extends Thread implements Pio8255Notify {
             if (!bRunning) {
                 break;
             }
-            m.yield();//predam rizeni na IQ, kvuli urychleni zmeny bitu      
+           //m.yield();//predam rizeni na IQ, kvuli urychleni zmeny bitu      
         }
-        int nRetByte = 0;
         synchronized (this) {
             if (bit5status == 0) {
                 bit5status = 1;

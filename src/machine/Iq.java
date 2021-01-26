@@ -67,7 +67,7 @@ public class Iq extends Thread
     private final int[] dstg64 = new int[2048];
     public JLabel lblLed=null;
     
-    private boolean bSav=false;
+    public boolean bSav=false;
     
     public Iq() {                
         img = new BufferedImage(sirka, vyska, BufferedImage.TYPE_INT_RGB);
@@ -638,9 +638,9 @@ public class Iq extends Thread
             case 0xD4:
                 graf.wpD4(value);
                 break; 
-                     case 0xF8:
+            case 0xF8:
                 if (cfg.getSDRom()) {
-                    sdrom.getPio().CpuWrite(sdrom.getPio().PP_PortA, value);
+                    sdrom.getPio().CpuWrite(sdrom.getPio().PP_PortA, value);                   
                     sdrom.yield();
                 }
                 break;
@@ -660,19 +660,23 @@ public class Iq extends Thread
                 if (cfg.getSDRom()) {
                     synchronized (sdrom) {
                         sdrom.getPio().CpuWrite(sdrom.getPio().PP_CWR, value);
-                    }
-                    //pokud prijde postupne 14 a pak 13, tak chce IQ ukladat
+                    }                    
+                    //pokud prijde postupne 14 a pak 13, tak chce IQ ukladat bajt
                     if ((!bSav) && (value == 14)) {
                         bSav = true;
                     } else {
                         if ((bSav)&&(value == 13)) {
                             //ukladani z IQ do SDROM 
-                            if(sdrom.itrInter.isFinished()){
+                            if (sdrom.itrInter==null){
                                 sdrom.newInterrupt();
-                            }
-                            if (!sdrom.itrInter.isRunning()) {
                                 sdrom.startInterrupt();
+                            }else{
+                                if (sdrom.itrInter.isFinished()) {
+                                 sdrom.newInterrupt();
+                                 sdrom.startInterrupt(); 
+                                }
                             }
+                            
                         } else {
                             bSav = false;
                         }
