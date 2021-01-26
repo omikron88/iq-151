@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Stack;
 import javax.swing.JLabel;
@@ -358,8 +359,8 @@ public class SDRom extends Thread implements Pio8255Notify {
         String strDir = new String(cur_dir, 0, nLen);
         // System.out.println("GetDir-"+strDir); 
         port_output();
-        //strDir2 = Paths.get(strDir).normalize().toString(); //JAVA 1.7
-        String strDir2 = simplify(strDir); //JAVA 1.6
+        String strDir2 = Paths.get(strDir).normalize().toString(); //JAVA 1.7
+        //String strDir2 = simplify(strDir); //JAVA 1.6
         File fDir = new File(utils.Config.getMyPath() + "SDRoot" + strDir);
 
         //nejdrive poslu dvojteckovy adresar umoznujici pohyb o uroven vyse, ale pouze do urovne SDRoot

@@ -22,19 +22,29 @@ public class Config {
     public final byte AMOS = 3;
 
     
+ public final byte Mstandard = 10;
+    public final byte Mdisassembler = 11;
+    public final byte MCPMkom = 12;
+    public final byte MCPMfel = 13;
+  
     private byte video = VIDEO32; 
     private byte main = BASICG;
+    private byte monit = Mstandard;
     private boolean mem64 = false;
     
     private String roms = "roms/";
     private String charsRom = "chars.bin";
-    private String monitorRom = "Monitor.rom";
+    private String monStdRom = "Monitor-std.rom";
+    private String monDisRom = "Monitor-dis.rom";
+    private String monKomRom = "Monitor-cpm-Variel.rom";
+    private String monFelRom = "Monitor-cpm-030188.rom";
     private String basic6Rom = "Basic6.rom";
     private String basicGRom = "BasicG.rom";
     private String basicG2Rom = "BasicG2.rom";
     private String assemblerRom = "Assembler.rom";
     private String pascalRom = "Pascal.rom";
     private String pascal1Rom = "Pascal1.rom";
+
 
 
     public byte getVideo() {
@@ -76,6 +86,19 @@ public class Config {
             sdrom = b;
         }
     }
+     
+    public byte getMonitor() {
+        return monit;
+    }
+    
+   
+    public void setMonitor(byte b) {
+        if (b!=monit) {
+            monit = b;
+        }
+    }
+    
+
 
     public boolean getMem64() {
         return mem64;
@@ -95,10 +118,19 @@ public class Config {
         return charsRom;
     }
     
-    public String getMonitorRom() {
-        return monitorRom;
+    public String getMonStdRom() {
+        return monStdRom;
     }
-
+    
+    public String getMonDisRom() {
+        return monDisRom;
+    }
+    public String getMonKomRom() {
+        return monKomRom;
+    }
+    public String getMonFelRom() {
+        return monFelRom;
+    }
     public String getBasic6Rom() {
         return basic6Rom;
     }
