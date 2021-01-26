@@ -364,7 +364,7 @@ public class SDRom extends Thread implements Pio8255Notify {
         File fDir = new File(utils.Config.getMyPath() + "SDRoot" + strDir);
 
         //nejdrive poslu dvojteckovy adresar umoznujici pohyb o uroven vyse, ale pouze do urovne SDRoot
-        if (!strDir2.contentEquals("/")) {
+        if ((!strDir2.contentEquals("/"))&&(!strDir2.contentEquals("\\"))) {
             pombuf[0] = '/';
             pombuf[1] = '.';
             pombuf[2] = '.';
