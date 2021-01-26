@@ -671,7 +671,7 @@ public class Iq extends Thread
                                 sdrom.newInterrupt();
                             }
                             if (!sdrom.itrInter.isRunning()) {
-                                sdrom.newInterrupt();
+                                sdrom.startInterrupt();
                             }
                         } else {
                             bSav = false;

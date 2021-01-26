@@ -78,6 +78,12 @@ public class SDRom extends Thread implements Pio8255Notify {
     public void newInterrupt(){
        itrInter = new Interrupt(this); 
     }
+    
+    public void startInterrupt(){
+        if(itrInter!=null){
+          itrInter.start();
+        }
+    }
    
     public void setLED(JLabel inLed) {
         lblLED = inLed;
