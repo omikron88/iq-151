@@ -22,7 +22,7 @@ public class Config {
     public final byte AMOS = 3;
 
     
- public final byte Mstandard = 10;
+    public final byte Mstandard = 10;
     public final byte Mdisassembler = 11;
     public final byte MCPMkom = 12;
     public final byte MCPMfel = 13;

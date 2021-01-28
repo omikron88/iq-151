@@ -84,6 +84,7 @@ public class Iq extends Thread
         cfg.setSDRom(utils.Config.sdrom);
         cfg.setMem64(utils.Config.mem64);
         cfg.setVideo((byte)utils.Config.video64);
+        cfg.setMonitor((byte)utils.Config.monitor);
         mem = new Memory(cfg);
         chars = mem.getChars();
         vm = mem.getVRam();
@@ -640,7 +641,7 @@ public class Iq extends Thread
                 break; 
             case 0xF8:
                 if (cfg.getSDRom()) {
-                    sdrom.getPio().CpuWrite(sdrom.getPio().PP_PortA, value);                   
+                    sdrom.getPio().CpuWrite(sdrom.getPio().PP_PortA, value); 
                     sdrom.yield();
                 }
                 break;
@@ -658,9 +659,19 @@ public class Iq extends Thread
                 break;
             case 0xFB:
                 if (cfg.getSDRom()) {
-                    synchronized (sdrom) {
-                        sdrom.getPio().CpuWrite(sdrom.getPio().PP_CWR, value);
-                    }                    
+                    if (value == 180) {
+                        //zmena smeru toku dat, musim pockat na dokonceni prace sdrom
+                        while (sdrom.bSdromIn) {
+                            sdrom.yield();
+                        }
+                    }
+                    sdrom.getPio().CpuWrite(sdrom.getPio().PP_CWR, value);                                       
+                    if (value == 129) {
+                        //zmena smeru toku dat, musim pockat na dokonceni prace sdrom
+                        while (!sdrom.bSdromIn) {
+                            sdrom.yield();
+                        }
+                    }
                     //pokud prijde postupne 14 a pak 13, tak chce IQ ukladat bajt
                     if ((!bSav) && (value == 14)) {
                         bSav = true;

@@ -49,6 +49,7 @@ public class Config {
     
     //ukladani settings
     public static int mainmodule=2;
+    public static int monitor=10;
     public static boolean grafik=true;
     public static boolean sdrom=false;
     public static int video64=0;
@@ -96,6 +97,7 @@ public class Config {
      prop.setProperty("SDROM", String.valueOf(sdrom));
      prop.setProperty("VIDEO64", String.valueOf(video64));   
      prop.setProperty("MEM64", String.valueOf(mem64)); 
+     prop.setProperty("MONITOR", String.valueOf(monitor));
 
       String fileName = getMyPath() + "JIQ151.config";
         OutputStream os;
@@ -110,6 +112,26 @@ public class Config {
         } catch (Exception ex) {
             
         }
+    }
+    
+    private static int parseIntSafe(String strInt, int nDefault) {
+        int nRet = nDefault;
+        try {
+            nRet = Integer.parseInt(strInt);
+        } catch (Exception e) {
+            nRet = nDefault;
+        }
+        return nRet;
+    }
+    
+    private static boolean parseBooleanSafe(String strBoolean,boolean bDefault) {
+        boolean bRet = bDefault;
+        try {
+            bRet = Boolean.parseBoolean(strBoolean);
+        } catch (Exception e) {
+            bRet = bDefault;
+        }
+        return bRet;
     }
 
     public static void LoadConfig() {
@@ -129,34 +151,35 @@ public class Config {
         }
 
         strBinFilePath = prop.getProperty("BINFILEPATH");
-        nBeginBinAddress=Integer.parseInt(prop.getProperty("BEGINBINADDRESS"));
-        bRunBin=Boolean.parseBoolean(prop.getProperty("BRUNBIN"));
-        nRunBinAddress=Integer.parseInt(prop.getProperty("RUNBINADDRESS")); 
-        bAllRam=Boolean.parseBoolean(prop.getProperty("BALLRAM"));
-        bHeaderOn=Boolean.parseBoolean(prop.getProperty("BHEADER"));        
-        bBP1=Boolean.parseBoolean(prop.getProperty("BP1CHCK"));
-        nBP1Address=Integer.parseInt(prop.getProperty("BP1ADDRESS"));
-        bBP2=Boolean.parseBoolean(prop.getProperty("BP2CHCK"));
-        nBP2Address=Integer.parseInt(prop.getProperty("BP2ADDRESS"));
-        bBP3=Boolean.parseBoolean(prop.getProperty("BP3CHCK"));
-        nBP3Address=Integer.parseInt(prop.getProperty("BP3ADDRESS"));
-        bBP4=Boolean.parseBoolean(prop.getProperty("BP4CHCK"));
-        nBP4Address=Integer.parseInt(prop.getProperty("BP4ADDRESS"));
-        bBP5=Boolean.parseBoolean(prop.getProperty("BP5CHCK"));
-        nBP5Address=Integer.parseInt(prop.getProperty("BP5ADDRESS"));
-        bBP6=Boolean.parseBoolean(prop.getProperty("BP6CHCK"));
-        nBP6Address=Integer.parseInt(prop.getProperty("BP6ADDRESS"));
-        nMemAddress=Integer.parseInt(prop.getProperty("MEMADDRESS"));
-        bShowCode=Boolean.parseBoolean(prop.getProperty("BSHOWCODE"));
+        nBeginBinAddress=parseIntSafe(prop.getProperty("BEGINBINADDRESS"),0);
+        bRunBin=parseBooleanSafe(prop.getProperty("BRUNBIN"),false);
+        nRunBinAddress=parseIntSafe(prop.getProperty("RUNBINADDRESS"),0); 
+        bAllRam=parseBooleanSafe(prop.getProperty("BALLRAM"),true);
+        bHeaderOn=parseBooleanSafe(prop.getProperty("BHEADER"),true);        
+        bBP1=parseBooleanSafe(prop.getProperty("BP1CHCK"),false);
+        nBP1Address=parseIntSafe(prop.getProperty("BP1ADDRESS"),0);
+        bBP2=parseBooleanSafe(prop.getProperty("BP2CHCK"),false);
+        nBP2Address=parseIntSafe(prop.getProperty("BP2ADDRESS"),0);
+        bBP3=parseBooleanSafe(prop.getProperty("BP3CHCK"),false);
+        nBP3Address=parseIntSafe(prop.getProperty("BP3ADDRESS"),0);
+        bBP4=parseBooleanSafe(prop.getProperty("BP4CHCK"),false);
+        nBP4Address=parseIntSafe(prop.getProperty("BP4ADDRESS"),0);
+        bBP5=parseBooleanSafe(prop.getProperty("BP5CHCK"),false);
+        nBP5Address=parseIntSafe(prop.getProperty("BP5ADDRESS"),0);
+        bBP6=parseBooleanSafe(prop.getProperty("BP6CHCK"),false);
+        nBP6Address=parseIntSafe(prop.getProperty("BP6ADDRESS"),0);
+        nMemAddress=parseIntSafe(prop.getProperty("MEMADDRESS"),0);
+        bShowCode=parseBooleanSafe(prop.getProperty("BSHOWCODE"),false);
         strSaveBinFilePath = prop.getProperty("BINSAVEFILEPATH");
-        nSaveFromAddress=Integer.parseInt(prop.getProperty("BINSAVEADDRESSFROM"));
-        nSaveToAddress=Integer.parseInt(prop.getProperty("BINSAVEADDRESSTO"));
+        nSaveFromAddress=parseIntSafe(prop.getProperty("BINSAVEADDRESSFROM"),0);
+        nSaveToAddress=parseIntSafe(prop.getProperty("BINSAVEADDRESSTO"),0);
         
-        mainmodule=Integer.parseInt(prop.getProperty("MAINMODULE"));
-        grafik=Boolean.parseBoolean(prop.getProperty("GRAFIK"));
-        sdrom=Boolean.parseBoolean(prop.getProperty("SDROM"));
-        video64=Integer.parseInt(prop.getProperty("VIDEO64"));
-        mem64=Boolean.parseBoolean(prop.getProperty("MEM64"));
+        mainmodule=parseIntSafe(prop.getProperty("MAINMODULE"),2);
+        monitor=parseIntSafe(prop.getProperty("MONITOR"),10);
+        grafik=parseBooleanSafe(prop.getProperty("GRAFIK"),true);
+        sdrom=parseBooleanSafe(prop.getProperty("SDROM"),false);
+        video64=parseIntSafe(prop.getProperty("VIDEO64"),0);
+        mem64=parseBooleanSafe(prop.getProperty("MEM64"),false);
   
     }
 }

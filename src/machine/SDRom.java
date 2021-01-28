@@ -15,6 +15,8 @@ import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JLabel;
 
 /**
@@ -35,7 +37,10 @@ public class SDRom extends Thread implements Pio8255Notify {
     private JLabel lblLED;
     int savnum=0;
     private boolean bSaving=false;
+    public boolean bSdromIn=false;
     public Interrupt itrInter=null;
+    javax.swing.ImageIcon icoLedGreen= new javax.swing.ImageIcon(getClass().getResource("/icons/green.png"));
+    javax.swing.ImageIcon icoLedGray= new javax.swing.ImageIcon(getClass().getResource("/icons/gray.png"));
     
     //implementuje preruseni Atmegy, ktere je v realu pouzito pro ukladani souboru z IQ na SD-ROM
     public class Interrupt extends Thread {
@@ -89,7 +94,7 @@ public class SDRom extends Thread implements Pio8255Notify {
 
     //přepne stav LED v pravem dolnim rohu
     private void blinkLED() {
-        if (lblLED.getForeground() != Color.GRAY) {
+        if (lblLED.getIcon() != icoLedGray) {
             turnoffLED();
         } else {
             turnonLED();
@@ -97,11 +102,11 @@ public class SDRom extends Thread implements Pio8255Notify {
     }
     //zhasne LED v pravem dolnim rohu
     private void turnoffLED() {
-        lblLED.setForeground(Color.GRAY);
+        lblLED.setIcon(icoLedGray);
     }
     //rozsviti zelenou LED v pravem dolnim rohu
     private void turnonLED() {
-        lblLED.setForeground(Color.GREEN);
+       lblLED.setIcon(icoLedGreen);
     }
 
     public Pio8255 getPio() {
@@ -177,6 +182,7 @@ public class SDRom extends Thread implements Pio8255Notify {
     public void run() {
         bRunning = true;
         bStopped = false;
+        bSdromIn=false;
         while (bRunning) {
 
             File[] listOfFiles = new File(utils.Config.getMyPath() + "SDRoot").listFiles();
@@ -219,9 +225,11 @@ public class SDRom extends Thread implements Pio8255Notify {
                 bStopped = true;
                 return;
             }
+
             //loader odeslan cekam na prikazy z IQ151
-            int nBajt = 0;
+            int nBajt = 0;            
             port_input();
+            bSdromIn=true;
             do {
                 turnonLED();
                 nBajt = readbyte();
@@ -252,7 +260,7 @@ public class SDRom extends Thread implements Pio8255Notify {
 
     //nastavi port na vstup
     void port_input() {
-        pioStapper.CpuWrite(pioStapper.PP_CWR, 129);
+       // pioStapper.CpuWrite(pioStapper.PP_CWR, 129);
         bit2status = 1; //prepinace pro prenos z IQ151 do modulu nestandardni cestou
         bit5status = 0; //pocita se zmena hodnoty bitu oproti predchozimu stavu
     }
@@ -282,7 +290,7 @@ public class SDRom extends Thread implements Pio8255Notify {
 
     //cte 1 bajt z IQ151 pomoci bit-bangu
     int readbyte() {
-        blinkLED();
+        blinkLED();        
         int nRetByte = 0;
         //poslu, ze jsem ready na cteni
         if (bit2status == 0) {
@@ -297,16 +305,15 @@ public class SDRom extends Thread implements Pio8255Notify {
             if (!bRunning) {
                 break;
             }
-           //m.yield();//predam rizeni na IQ, kvuli urychleni zmeny bitu      
+           m.yield();//predam rizeni na IQ, kvuli urychleni zmeny bitu      
         }
-        synchronized (this) {
-            if (bit5status == 0) {
-                bit5status = 1;
-            } else {
-                bit5status = 0;
-            }
-            nRetByte = pioStapper.PeripheralReadByte(pioStapper.PP_PortA);
+        
+        if (bit5status == 0) {
+            bit5status = 1;
+        } else {
+            bit5status = 0;
         }
+        nRetByte = pioStapper.PeripheralReadByte(pioStapper.PP_PortA);        
         return nRetByte;
 
     }
@@ -354,17 +361,19 @@ public class SDRom extends Thread implements Pio8255Notify {
         //nactu argument, tj. o jaky dir se jedna
         int nLen;
         nLen = readbyte();
-        //System.out.println(String.format( "Len=%02X", nLen));
+       // System.out.println(String.format( "Len=%02X", nLen));
         for (int k = 0; k < nLen; k++) {
             cur_dir[k] = (byte) readbyte();
-            //  System.out.println(String.format( "%02X", cur_dir[k]));
+          //    System.out.println(String.format( "%02X", cur_dir[k]));
         }
+        bSdromIn=false;
         cur_dir[nLen] = '\0';
         String strDir = new String(cur_dir, 0, nLen);
-        // System.out.println("GetDir-"+strDir); 
+        //System.out.println("GetDir-"+strDir); 
+ 
         port_output();
-        String strDir2 = Paths.get(strDir).normalize().toString(); //JAVA 1.7
-        //String strDir2 = simplify(strDir); //JAVA 1.6
+        //String strDir2 = Paths.get(strDir).normalize().toString(); //JAVA 1.7
+        String strDir2 = simplify(strDir); //JAVA 1.6
         File fDir = new File(utils.Config.getMyPath() + "SDRoot" + strDir);
 
         //nejdrive poslu dvojteckovy adresar umoznujici pohyb o uroven vyse, ale pouze do urovne SDRoot
@@ -408,6 +417,7 @@ public class SDRom extends Thread implements Pio8255Notify {
         pombuf[1] = 0;
         send2IQ(pombuf, 1);
         port_input();
+        bSdromIn=true;        
         turnoffLED();
 
     }
@@ -422,6 +432,7 @@ public class SDRom extends Thread implements Pio8255Notify {
         for (int k = 0; k < nLen; k++) {
             file_mask[k] = (byte) readbyte();
         }
+        bSdromIn=false;
         file_mask[nLen] = '\0';
 
         String strFile = new String(file_mask, 0, nLen);
@@ -487,6 +498,7 @@ public class SDRom extends Thread implements Pio8255Notify {
 
 
         port_input();
+        bSdromIn=true;
         turnoffLED();
 
     }

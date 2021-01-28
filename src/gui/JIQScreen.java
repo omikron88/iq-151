@@ -46,9 +46,9 @@ public class JIQScreen extends javax.swing.JPanel {
         
         trOp = new AffineTransformOp(tr, rHints);
         
-        setMinimumSize(new Dimension(620, 550));
-        setMaximumSize(new Dimension(620, 550));
-        setPreferredSize(new Dimension(600, 550));
+        setMinimumSize(new Dimension(566, 593));
+        setMaximumSize(new Dimension(566, 593));
+        setPreferredSize(new Dimension(566, 601));
     } // constructor
 
     public void setImage(BufferedImage img) {

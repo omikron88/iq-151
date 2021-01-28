@@ -4,15 +4,23 @@
  */
 package gui;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.LayoutManager;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Robot;
+import java.awt.event.InputEvent;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import machine.Config;
 import machine.Iq;
 
@@ -43,7 +51,9 @@ public class JIQ151 extends javax.swing.JFrame {
      */
     public JIQ151() {
         initComponents();
+        getContentPane().setBackground(Color.black);
         initEmulator();
+        pack();
         if(utils.Config.sdrom){
             addLEDbar();
         }else{
@@ -53,16 +63,18 @@ public class JIQ151 extends javax.swing.JFrame {
 
     private void addLEDbar() {
         if (ledPanel == null) {
-            lblLed = new JLabel("• ");
-            lblLed.setForeground(Color.GRAY);
+            lblLed = new JLabel("");
+            lblLed.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/gray.png")));
             m.setSDRomLED(lblLed);
             JPanel bottomPanel = new JPanel(new BorderLayout());
             bottomPanel.add(lblLed, BorderLayout.LINE_END);
             ledPanel = new JPanel(new BorderLayout());
+            ledPanel.setBackground(Color.black);
             ledPanel.add(bottomPanel, BorderLayout.PAGE_END);
             this.getContentPane().add(ledPanel);                       
         }
-        setSize(566, 620);
+        setSize(566, scr.getPreferredSize().height+lblLed.getPreferredSize().height);   
+        scr.repaint();
     }
     
     private void removeLEDbar(){
@@ -70,7 +82,7 @@ public class JIQ151 extends javax.swing.JFrame {
             this.getContentPane().remove(ledPanel);
             ledPanel=null;
         }
-        setSize(566, 593);
+        setSize(566, scr.getPreferredSize().height);
     }
 
     /**
@@ -104,7 +116,7 @@ public class JIQ151 extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("jIQ151");
-        setResizable(false);
+        setPreferredSize(new java.awt.Dimension(566, 590));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
@@ -113,10 +125,11 @@ public class JIQ151 extends javax.swing.JFrame {
 
         jMenuBar1.setMaximumSize(new java.awt.Dimension(282, 500));
 
+        jMenu6.setForeground(new java.awt.Color(255, 0, 0));
         jMenu6.setText("Reset");
         jMenu6.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                bResetActionPerformed(evt);
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jResetPressed(evt);
             }
         });
         jMenuBar1.add(jMenu6);
@@ -291,27 +304,22 @@ public class JIQ151 extends javax.swing.JFrame {
         }
         Config cfg=m.getConfig();
         utils.Config.mainmodule=cfg.getMain();
+        utils.Config.monitor=cfg.getMonitor();
         utils.Config.grafik=cfg.getGrafik();
         utils.Config.sdrom=cfg.getSDRom();     
-        if(cfg.getSDRom()){
-            addLEDbar();
-        }else{
-            removeLEDbar();
-        }       
+              
         utils.Config.mem64=cfg.getMem64();
         utils.Config.video64=cfg.getVideo();
         utils.Config.SaveConfig();
-                
+        pack();
         set.dispose();
+        if (cfg.getSDRom()) {
+            addLEDbar();
+        } else {
+            removeLEDbar();
+        }
         if (!pau) m.startEmulation();
     }//GEN-LAST:event_mSettingsActionPerformed
-
-    private void bResetActionPerformed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_bResetActionPerformed
-            m.Reset(false);
-            m.clearScreen(); 
-            jMenu6.setSelected(false);
-            this.requestFocusInWindow(); 
-    }//GEN-LAST:event_bResetActionPerformed
 
     private void bDebuggerActionPerformed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_bDebuggerActionPerformed
                 
@@ -334,6 +342,27 @@ public class JIQ151 extends javax.swing.JFrame {
         bsav.showDialog(); 
         bsav.setAlwaysOnTop(true);
     }//GEN-LAST:event_jButtonBinarySaveActionPerformed
+
+    private void jResetPressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jResetPressed
+        if (SwingUtilities.isLeftMouseButton(evt)) {
+            m.Reset(false);
+            m.clearScreen();
+            jMenu6.setSelected(false);
+            this.requestFocusInWindow();
+            //autoklik do obrazovky pro presun fokusu z menu
+            try {
+                Point saveMouse = MouseInfo.getPointerInfo().getLocation();
+                Point p = scr.getLocationOnScreen();
+                Robot r;
+                r = new Robot();
+                r.mouseMove(saveMouse.x, p.y + 1);
+                r.mousePress(InputEvent.BUTTON1_MASK);
+                r.mouseRelease(InputEvent.BUTTON1_MASK);
+                r.mouseMove(saveMouse.x, saveMouse.y);
+            } catch (Exception ex) {
+            }
+        }
+    }//GEN-LAST:event_jResetPressed
 
     private void initEmulator() {
         m = new Iq();
