@@ -7,6 +7,7 @@ package gui;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.LayoutManager;
@@ -17,7 +18,10 @@ import java.awt.event.InputEvent;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Box;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -51,6 +55,10 @@ public class JIQ151 extends javax.swing.JFrame {
      */
     public JIQ151() {
         initComponents();
+        //presun polozky menu About doprava
+        jMenuBar1.remove(jMenu7);
+        jMenuBar1.add(Box.createHorizontalGlue());
+        jMenuBar1.add(jMenu7);        
         getContentPane().setBackground(Color.black);
         initEmulator();
         pack();
@@ -113,6 +121,7 @@ public class JIQ151 extends javax.swing.JFrame {
         jMenu3 = new javax.swing.JMenu();
         jMenu4 = new javax.swing.JMenu();
         jMenu5 = new javax.swing.JMenu();
+        jMenu7 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("jIQ151");
@@ -229,6 +238,14 @@ public class JIQ151 extends javax.swing.JFrame {
             }
         });
         jMenuBar1.add(jMenu5);
+
+        jMenu7.setText("About");
+        jMenu7.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jAboutClicked(evt);
+            }
+        });
+        jMenuBar1.add(jMenu7);
 
         setJMenuBar(jMenuBar1);
 
@@ -364,6 +381,12 @@ public class JIQ151 extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jResetPressed
 
+    private void jAboutClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jAboutClicked
+        JDialog dAbout = new About(new JFrame());     
+        dAbout.setLocationRelativeTo(this);
+        dAbout.setVisible(true);
+    }//GEN-LAST:event_jAboutClicked
+
     private void initEmulator() {
         m = new Iq();
         scr = new JIQScreen();
@@ -430,6 +453,7 @@ public class JIQ151 extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenu jMenu5;
     private javax.swing.JMenu jMenu6;
+    private javax.swing.JMenu jMenu7;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;

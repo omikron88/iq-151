@@ -10,7 +10,8 @@
  */
 package gui;
 
-import Z80Dis.Z80Dis;
+import disassemblers.I8080Dis;
+import disassemblers.Z80Dis;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -18,6 +19,8 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.text.DecimalFormat;
 import java.util.Date;
+import javax.swing.JScrollPane;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 import machine.Iq;
@@ -55,7 +58,7 @@ public class Debugger extends javax.swing.JFrame {
     static boolean bBP6Checked=false;
     static boolean bBP1Updt=true;
     static boolean bShowCode=true;
-    
+    static boolean bZ80=false;
     
     static long nLastClick=0;
     static long nLastClickAsm=0;
@@ -65,6 +68,14 @@ public class Debugger extends javax.swing.JFrame {
     /** Creates new form Debugger */
     public Debugger(Iq inM) {
         initComponents();
+        ((DefaultCaret)jTextAsmCode.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+        jScrollPane1.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+
+        ((DefaultCaret)jTextData.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+        jScrollPane5.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane5.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        
         jRunButton.setIcon(icoRun);
         jTextData.addMouseWheelListener(new MouseWheelListener() {
 
@@ -99,6 +110,9 @@ public class Debugger extends javax.swing.JFrame {
         });
 
         utils.Config.LoadConfig();
+        if(utils.Config.bZ80){
+            jButton1.setText("Z80");
+        }
         bBP1Checked=utils.Config.bBP1;
         bBP2Checked=utils.Config.bBP2;
         bBP3Checked=utils.Config.bBP3;
@@ -144,7 +158,16 @@ public class Debugger extends javax.swing.JFrame {
          m.cpu.setBreakpoint(nBP5, true);
         }
     }
-    public void fillAsmCode(){
+    
+     public void fillAsmCode(){
+         if(utils.Config.bZ80) {
+             fillAsmCodeZ80();
+         }else{
+             fillAsmCodeI8080();
+         }
+     }
+    
+    public void fillAsmCodeZ80(){
         //vyplni textove pole s assemblerem
         jTextAsmCode.setText("");
         Z80Dis disassembler=new Z80Dis();
@@ -160,6 +183,44 @@ public class Debugger extends javax.swing.JFrame {
         String instdata="";
         for(int i=memPtr;i<memPtr+OpcodeLen;i++){
           instdata+=String.format("%02X",(byte)Z80Dis.Opcodes[i]);  
+        }
+        for(int i=0;i<4-OpcodeLen;i++){
+          instdata+="  ";  
+        }
+        String instrukce=String.format( "#%04X", memPtr)+" "+instdata+" "+disassembler.Disassemble(memPtr)+"\n";
+        jTextAsmCode.append(instrukce); 
+            if (j == 0) {
+                Highlighter h = jTextAsmCode.getHighlighter();
+                try {
+                    h.addHighlight(0, instrukce.length()-1, DefaultHighlighter.DefaultPainter);
+                } catch (Exception e1) {
+                }
+                stpBP.nAdress=memPtr+OpcodeLen;
+                stpBP.bStatus=false;
+            }
+        memPtr+=OpcodeLen;
+        }
+    }
+    
+      public void fillAsmCodeI8080(){
+        //vyplni textove pole s assemblerem
+        jTextAsmCode.setText("");
+        I8080Dis disassembler=new I8080Dis();
+        I8080Dis.Opcodes=new int[65536];
+        int memPtr = m.cpu.getRegPC();
+        for(int j=0;j<10;j++){
+        int memPtrTmp=memPtr;
+        for(int i=memPtr;i<memPtr+5;i++){
+           I8080Dis.Opcodes[i]= (0xff) & (byte)m.mem.readByte(memPtrTmp);
+           memPtrTmp++;
+        }
+
+        disassembler.Disassemble(memPtr);
+        byte OpcodeLen = I8080Dis.nInstrLen;
+        
+        String instdata="";
+        for(int i=memPtr;i<memPtr+OpcodeLen;i++){
+          instdata+=String.format("%02X",(byte)I8080Dis.Opcodes[i]);  
         }
         for(int i=0;i<4-OpcodeLen;i++){
           instdata+="  ";  
@@ -333,6 +394,8 @@ public class Debugger extends javax.swing.JFrame {
             }
         } else {
             //zobraz disassembling 
+           if(utils.Config.bZ80){
+            //Z80
             Z80Dis disassembler = new Z80Dis();
             Z80Dis.Opcodes = new int[65600];
             int memPtr = nMemAdr;
@@ -361,6 +424,40 @@ public class Debugger extends javax.swing.JFrame {
                 memPtr += OpcodeLen;
                 if(memPtr>65535){
                     memPtr=memPtr-65536;
+                }
+            }
+            } else {
+                //I8080
+                I8080Dis disassembler = new I8080Dis();
+                I8080Dis.Opcodes = new int[65600];
+                int memPtr = nMemAdr;
+                for (int j = 0; j < 7; j++) {
+                    int memPtrTmp = memPtr;
+                    for (int i = memPtr; i < memPtr + 5; i++) {
+                        I8080Dis.Opcodes[i] = (0xff) & (byte) m.mem.readByte(memPtrTmp);
+                        memPtrTmp++;
+                        if (memPtrTmp == 65536) {
+                            memPtrTmp = 0;
+                        }
+                    }
+                    disassembler.Disassemble(memPtr);
+                    byte OpcodeLen = I8080Dis.nInstrLen;
+                    String instdata = "";
+                    for (int i = memPtr; i < memPtr + OpcodeLen; i++) {
+                        instdata += String.format("%02X", (byte) I8080Dis.Opcodes[i]);
+                    }
+                    for (int i = 0; i < 4 - OpcodeLen; i++) {
+                        instdata += "  ";
+                    }
+                    String instrukce = String.format("#%04X", memPtr) + " " + instdata + " " + disassembler.Disassemble(memPtr) + "\n";
+                    jTextData.append(instrukce);
+                    if (j == 0) {
+                        nStepPlusAsm = OpcodeLen;
+                    }
+                    memPtr += OpcodeLen;
+                    if (memPtr > 65535) {
+                        memPtr = memPtr - 65536;
+                    }
                 }
             }
         }
@@ -407,7 +504,7 @@ public class Debugger extends javax.swing.JFrame {
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-   private void initComponents() {
+    private void initComponents() {
 
         jTextField1 = new javax.swing.JTextField();
         jRunButton = new javax.swing.JButton();
@@ -440,6 +537,7 @@ public class Debugger extends javax.swing.JFrame {
         jCheckBP6 = new javax.swing.JCheckBox();
         jTextBP6 = new utils.JNumberTextField();
         jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
 
         jTextField1.setText("jTextField1");
 
@@ -463,9 +561,9 @@ public class Debugger extends javax.swing.JFrame {
             }
         });
 
-        jTextAsmCode.setColumns(20);
         jTextAsmCode.setEditable(false);
-        jTextAsmCode.setFont(new java.awt.Font("Courier New", 1, 12));
+        jTextAsmCode.setColumns(20);
+        jTextAsmCode.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
         jTextAsmCode.setRows(6);
         jTextAsmCode.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -476,7 +574,7 @@ public class Debugger extends javax.swing.JFrame {
 
         jTextRegistry.setColumns(20);
         jTextRegistry.setEditable(false);
-        jTextRegistry.setFont(new java.awt.Font("Courier New", 1, 12));
+        jTextRegistry.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
         jTextRegistry.setRows(5);
         jTextRegistry.setAutoscrolls(false);
         jScrollPane2.setViewportView(jTextRegistry);
@@ -485,14 +583,14 @@ public class Debugger extends javax.swing.JFrame {
 
         jTextFlags.setColumns(20);
         jTextFlags.setEditable(false);
-        jTextFlags.setFont(new java.awt.Font("Courier New", 1, 12));
+        jTextFlags.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
         jTextFlags.setRows(5);
         jTextFlags.setAutoscrolls(false);
         jScrollPane3.setViewportView(jTextFlags);
 
         jTextStack.setColumns(20);
         jTextStack.setEditable(false);
-        jTextStack.setFont(new java.awt.Font("Courier New", 1, 12));
+        jTextStack.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
         jTextStack.setRows(5);
         jScrollPane4.setViewportView(jTextStack);
 
@@ -502,9 +600,9 @@ public class Debugger extends javax.swing.JFrame {
             }
         });
 
-        jTextData.setColumns(20);
         jTextData.setEditable(false);
-        jTextData.setFont(new java.awt.Font("Courier New", 1, 12));
+        jTextData.setColumns(20);
+        jTextData.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
         jTextData.setRows(5);
         jScrollPane5.setViewportView(jTextData);
 
@@ -619,6 +717,13 @@ public class Debugger extends javax.swing.JFrame {
 
         jLabel1.setText("Mem Write Breakpoint");
 
+        jButton1.setText("8080");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jZ80ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -626,21 +731,6 @@ public class Debugger extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jStepButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jStepIntoButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(10, 10, 10)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jTextAdr, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -676,7 +766,28 @@ public class Debugger extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jTextBP6, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jLabel1)
-                            .addComponent(jLabelTStates, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE))))
+                            .addComponent(jLabelTStates, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(jStepButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jStepIntoButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton1))
+                        .addGroup(layout.createSequentialGroup()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(10, 10, 10)
+                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jTextAdr, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGap(0, 0, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -684,15 +795,20 @@ public class Debugger extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jRunButton, javax.swing.GroupLayout.DEFAULT_SIZE, 43, Short.MAX_VALUE)
-                    .addComponent(jStepIntoButton, javax.swing.GroupLayout.DEFAULT_SIZE, 43, Short.MAX_VALUE)
-                    .addComponent(jStepButton, javax.swing.GroupLayout.DEFAULT_SIZE, 43, Short.MAX_VALUE))
-                .addGap(8, 8, 8)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jRunButton, javax.swing.GroupLayout.DEFAULT_SIZE, 43, Short.MAX_VALUE)
+                            .addComponent(jStepIntoButton, javax.swing.GroupLayout.DEFAULT_SIZE, 43, Short.MAX_VALUE)
+                            .addComponent(jStepButton, javax.swing.GroupLayout.DEFAULT_SIZE, 43, Short.MAX_VALUE))
+                        .addGap(8, 8, 8))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE)
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE))
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jCheckBP1)
@@ -1050,10 +1166,23 @@ public class Debugger extends javax.swing.JFrame {
         fillBps();
     }//GEN-LAST:event_jTextBP6FocusLost
 
+    private void jZ80ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jZ80ActionPerformed
+        if (utils.Config.bZ80) {
+            utils.Config.bZ80 = false;
+            jButton1.setText("8080");
+        } else {
+            utils.Config.bZ80 = true;
+            jButton1.setText("Z80");
+        }
+        utils.Config.SaveConfig();
+        refreshDlg();
+    }//GEN-LAST:event_jZ80ActionPerformed
+
 
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-   private javax.swing.JCheckBox jCheckBP1;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JCheckBox jCheckBP1;
     private javax.swing.JCheckBox jCheckBP2;
     private javax.swing.JCheckBox jCheckBP3;
     private javax.swing.JCheckBox jCheckBP4;

@@ -1,6 +1,6 @@
 package machine;
 
-import Z80Dis.Z80Dis;
+import disassemblers.Z80Dis;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Arrays;

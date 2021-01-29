@@ -1,4 +1,4 @@
-package Z80Dis;
+package disassemblers;
 
 
 public class Z80Dis {
