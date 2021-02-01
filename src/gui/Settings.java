@@ -95,7 +95,7 @@ public class Settings extends javax.swing.JDialog {
                 break;
             }
         }
-
+        ResetNeeded = false;
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         setLocation((screen.width-getSize().width)/2, (screen.height-getSize().height)/2);
         setModal(true);

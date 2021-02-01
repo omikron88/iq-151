@@ -1,3 +1,6 @@
+//Author: tmilata
+//original c++ code by Markus Fritze, ∑-Soft
+//LICENSE: Freeware
 package disassemblers;
 
 
@@ -283,7 +286,7 @@ public class Z80Dis {
                 }
                 break;
             case 0x40:                          // LD   d,s
-                if (d == e) {
+                if ((d == e) && (d == 6)) {
                     s= "HALT";
                 } else {
                     s= "LD ";
