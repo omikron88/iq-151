@@ -12,4 +12,5 @@ Features:
 * Video 32, Video 64
 * Grafik
 * Amos (both Assembler and Pascal)
-* Debugger (with Z80 mnemonics)
+* Debugger (both 8080 Z80 mnemonics)
++ SD-Rom module
