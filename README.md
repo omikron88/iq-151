@@ -13,4 +13,4 @@ Features:
 * Grafik
 * Amos (both Assembler and Pascal)
 * Debugger (both 8080 Z80 mnemonics)
-+ SD-Rom module
+* SD-Rom module
