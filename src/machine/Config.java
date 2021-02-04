@@ -14,6 +14,7 @@ public class Config {
 
     public boolean grafik = true;
     public boolean sdrom = false;
+    public boolean audio = false;
     public boolean V64ena32=false;
    
     public final byte NONE = 0;
@@ -86,7 +87,17 @@ public class Config {
             sdrom = b;
         }
     }
-     
+    
+    public boolean getAudio() {
+        return audio;
+    }
+    
+    public void setAudio(boolean b) {
+        if (b!=audio) {
+            audio = b;
+        }
+    }
+
     public byte getMonitor() {
         return monit;
     }

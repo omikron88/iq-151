@@ -45,6 +45,7 @@ public class Iq extends Thread
     private Grafik graf;
     private SDRom sdrom;
     private Debugger deb;
+    public Sound audio;
     
     public FileInputStream reader=null;
     boolean bReadyToSend=false;
@@ -85,6 +86,7 @@ public class Iq extends Thread
         cfg.setMem64(utils.Config.mem64);
         cfg.setVideo((byte)utils.Config.video64);
         cfg.setMonitor((byte)utils.Config.monitor);
+        cfg.setAudio(utils.Config.audio);
         mem = new Memory(cfg);
         chars = mem.getChars();
         vm = mem.getVRam();
@@ -99,6 +101,9 @@ public class Iq extends Thread
         key.setPic(ic);
         graf = new Grafik();
         graf.Init();
+        audio = new Sound();
+        audio.setEnabled(cfg.getAudio());
+        audio.init();        
         sdrom=null;
         if(cfg.getSDRom()){
          sdrom = new SDRom(this);         
@@ -166,6 +171,9 @@ public class Iq extends Thread
             sdrom.setLED(lblLed);
             sdrom.start();
         }
+        audio.deinit();
+        audio.setEnabled(cfg.getAudio());
+        audio.init();
         mem.Reset(dirty);
         if (zobrgr) {
             Arrays.fill(graf.GVRam, (byte)0);              
@@ -194,6 +202,7 @@ public class Iq extends Thread
             return;
         
         paused = false;
+        Sound.nDecrementSampleStates=Sound.nOneSampleStates;
         task = new IqTimer(this);
         tim.scheduleAtFixedRate(task, 100, 20);
        }
@@ -215,6 +224,7 @@ public class Iq extends Thread
             return;
         
         ic.assertInt(6);
+
         for(int t=0; t<40; t++) {               // half period of 1kHz
             if (!paused){
              cpu.execute(clk.getTstates()+1024); // is 1024 of 2MHz Tstates
@@ -222,6 +232,7 @@ public class Iq extends Thread
              if (khz1) tapeout = tapeo;
             }
         }
+
 // zjisti jestli se má zobrazovat grafika        
         zobrgr=graf.Enabled&&graf.ShowGR&&cfg.grafik;
         
@@ -276,6 +287,7 @@ public class Iq extends Thread
         }  //video64
 // a překreslit celou plochu        
         scr.repaint();
+
     }
  
    private void vlozdovram32(int adl,int src,boolean inverl) {
@@ -602,9 +614,21 @@ public class Iq extends Thread
                 break;
             case 0x86:
                 pio.CpuWrite(pio.PP_PortC, value);
+                //obsluha zvuku
+                if(audio.isEnabled()){
+                 audio.fillBuffer.putToBuffer((value & 0x08)!=0);
+                }
                 break;
-            case 0x87:
-                pio.CpuWrite(pio.PP_CWR, value);
+            case 0x87:                
+                //obsluha zvuku v pripade, ze je port C nastavovan pres port CWR
+                int nCorrected = value & 0x8f;
+                if ((nCorrected == 6) || (nCorrected == 7)) {
+                    if (audio.isEnabled()) {
+                        audio.fillBuffer.putToBuffer((value & 0x01) != 0);
+                    }
+                } else {
+                    pio.CpuWrite(pio.PP_CWR, value);
+                }
                 break;
             case 0x88:
                 ic.writePortA0(value);

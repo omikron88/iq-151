@@ -105,22 +105,26 @@ public class JIQ151 extends javax.swing.JFrame {
         buttonGroup1 = new javax.swing.ButtonGroup();
         fc = new javax.swing.JFileChooser();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu6 = new javax.swing.JMenu();
         jMenu1 = new javax.swing.JMenu();
         mLoad = new javax.swing.JMenuItem();
         mSave = new javax.swing.JMenuItem();
+        jSeparator4 = new javax.swing.JPopupMenu.Separator();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
-        mSettings = new javax.swing.JMenuItem();
-        jSeparator3 = new javax.swing.JPopupMenu.Separator();
         mExit = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
+        jMenu8 = new javax.swing.JMenu();
+        jMenu9 = new javax.swing.JMenu();
         mPlay = new javax.swing.JRadioButtonMenuItem();
         mRecord = new javax.swing.JRadioButtonMenuItem();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
         mInvert = new javax.swing.JCheckBoxMenuItem();
-        jMenu3 = new javax.swing.JMenu();
-        jMenu4 = new javax.swing.JMenu();
-        jMenu5 = new javax.swing.JMenu();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        jMenuItem5 = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
+        jMenu2 = new javax.swing.JMenu();
+        jMenuItem4 = new javax.swing.JMenuItem();
+        jSeparator5 = new javax.swing.JPopupMenu.Separator();
+        mSettings = new javax.swing.JMenuItem();
         jMenu7 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -133,15 +137,6 @@ public class JIQ151 extends javax.swing.JFrame {
         });
 
         jMenuBar1.setMaximumSize(new java.awt.Dimension(282, 500));
-
-        jMenu6.setForeground(new java.awt.Color(255, 0, 0));
-        jMenu6.setText("Reset");
-        jMenu6.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                jResetPressed(evt);
-            }
-        });
-        jMenuBar1.add(jMenu6);
 
         jMenu1.setText("File");
 
@@ -160,16 +155,24 @@ public class JIQ151 extends javax.swing.JFrame {
             }
         });
         jMenu1.add(mSave);
-        jMenu1.add(jSeparator1);
+        jMenu1.add(jSeparator4);
 
-        mSettings.setText("Settings");
-        mSettings.addActionListener(new java.awt.event.ActionListener() {
+        jMenuItem1.setText("Load Memory Block");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mSettingsActionPerformed(evt);
+                jLoadMemoryBlockActionPerformed(evt);
             }
         });
-        jMenu1.add(mSettings);
-        jMenu1.add(jSeparator3);
+        jMenu1.add(jMenuItem1);
+
+        jMenuItem2.setText("Save Memory Block");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jSaveMemoryBlockActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem2);
+        jMenu1.add(jSeparator1);
 
         mExit.setText("Exit");
         mExit.addActionListener(new java.awt.event.ActionListener() {
@@ -181,7 +184,9 @@ public class JIQ151 extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu1);
 
-        jMenu2.setText("Tape recorder");
+        jMenu8.setText("Control");
+
+        jMenu9.setText("Tape recorder");
 
         buttonGroup1.add(mPlay);
         mPlay.setSelected(true);
@@ -191,7 +196,7 @@ public class JIQ151 extends javax.swing.JFrame {
                 RecorderAction(evt);
             }
         });
-        jMenu2.add(mPlay);
+        jMenu9.add(mPlay);
 
         buttonGroup1.add(mRecord);
         mRecord.setForeground(java.awt.Color.red);
@@ -201,8 +206,7 @@ public class JIQ151 extends javax.swing.JFrame {
                 RecorderAction(evt);
             }
         });
-        jMenu2.add(mRecord);
-        jMenu2.add(jSeparator2);
+        jMenu9.add(mRecord);
 
         mInvert.setSelected(true);
         mInvert.setText("Invert signal");
@@ -211,33 +215,54 @@ public class JIQ151 extends javax.swing.JFrame {
                 mInvertActionPerformed(evt);
             }
         });
-        jMenu2.add(mInvert);
+        jMenu9.add(mInvert);
+
+        jMenu8.add(jMenu9);
+        jMenu8.add(jSeparator2);
+
+        jMenuItem5.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F7, 0));
+        jMenuItem5.setForeground(java.awt.Color.red);
+        jMenuItem5.setText("Reset");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jResetActionPerformed(evt);
+            }
+        });
+        jMenu8.add(jMenuItem5);
+
+        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem3.setText("Pause");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jPauseActionPerformed(evt);
+            }
+        });
+        jMenu8.add(jMenuItem3);
+
+        jMenuBar1.add(jMenu8);
+
+        jMenu2.setText("Tools");
+
+        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem4.setText("Debugger");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jDebuggerActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem4);
+        jMenu2.add(jSeparator5);
+
+        mSettings.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mSettings.setText("Settings");
+        mSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mSettingsActionPerformed(evt);
+            }
+        });
+        jMenu2.add(mSettings);
 
         jMenuBar1.add(jMenu2);
-
-        jMenu3.setText("Debugger");
-        jMenu3.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                bDebuggerActionPerformed(evt);
-            }
-        });
-        jMenuBar1.add(jMenu3);
-
-        jMenu4.setText("Load");
-        jMenu4.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButtonBinaryOpenActionPerformed(evt);
-            }
-        });
-        jMenuBar1.add(jMenu4);
-
-        jMenu5.setText("Save");
-        jMenu5.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButtonBinarySaveActionPerformed(evt);
-            }
-        });
-        jMenuBar1.add(jMenu5);
 
         jMenu7.setText("About");
         jMenu7.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -267,11 +292,11 @@ public class JIQ151 extends javax.swing.JFrame {
             }
         }
         
-        if (!pau) m.startEmulation();
+        if (!pau) m.startEmulation();             
     }//GEN-LAST:event_mLoadActionPerformed
 
     private void mSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mSaveActionPerformed
-        boolean pau = m.isPaused();
+       boolean pau = m.isPaused();
         m.stopEmulation();
         
         fc.setDialogTitle("Open SAVE tape");
@@ -314,6 +339,8 @@ public class JIQ151 extends javax.swing.JFrame {
         m.stopEmulation();
         
         Settings set = new Settings();
+        set.setSize(388, 488);
+        set.setLocationRelativeTo(this);
         set.showDialog(m.getConfig());
         if (set.isResetNeeded()) {
             m.Reset(false);
@@ -324,6 +351,7 @@ public class JIQ151 extends javax.swing.JFrame {
         utils.Config.monitor=cfg.getMonitor();
         utils.Config.grafik=cfg.getGrafik();
         utils.Config.sdrom=cfg.getSDRom();     
+        utils.Config.audio=cfg.getAudio();
               
         utils.Config.mem64=cfg.getMem64();
         utils.Config.video64=cfg.getVideo();
@@ -338,54 +366,50 @@ public class JIQ151 extends javax.swing.JFrame {
         if (!pau) m.startEmulation();
     }//GEN-LAST:event_mSettingsActionPerformed
 
-    private void bDebuggerActionPerformed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_bDebuggerActionPerformed
-                
-        boolean pau = m.isPaused();
-        m.stopEmulation();
-        deb.showDialog(); 
-        deb.setAlwaysOnTop(true);
-    }//GEN-LAST:event_bDebuggerActionPerformed
-
-    private void jButtonBinaryOpenActionPerformed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBinaryOpenActionPerformed
-        boolean pau = m.isPaused();
-        m.stopEmulation();
-        bopn.showDialog();
-        bopn.setAlwaysOnTop(true);
-    }//GEN-LAST:event_jButtonBinaryOpenActionPerformed
-
-    private void jButtonBinarySaveActionPerformed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonBinarySaveActionPerformed
-        boolean pau = m.isPaused();
-        m.stopEmulation();
-        bsav.showDialog(); 
-        bsav.setAlwaysOnTop(true);
-    }//GEN-LAST:event_jButtonBinarySaveActionPerformed
-
-    private void jResetPressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jResetPressed
-        if (SwingUtilities.isLeftMouseButton(evt)) {
-            m.Reset(false);
-            m.clearScreen();
-            jMenu6.setSelected(false);
-            this.requestFocusInWindow();
-            //autoklik do obrazovky pro presun fokusu z menu
-            try {
-                Point saveMouse = MouseInfo.getPointerInfo().getLocation();
-                Point p = scr.getLocationOnScreen();
-                Robot r;
-                r = new Robot();
-                r.mouseMove(saveMouse.x, p.y + 1);
-                r.mousePress(InputEvent.BUTTON1_MASK);
-                r.mouseRelease(InputEvent.BUTTON1_MASK);
-                r.mouseMove(saveMouse.x, saveMouse.y);
-            } catch (Exception ex) {
-            }
-        }
-    }//GEN-LAST:event_jResetPressed
-
     private void jAboutClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jAboutClicked
         JDialog dAbout = new About(new JFrame());     
         dAbout.setLocationRelativeTo(this);
         dAbout.setVisible(true);
     }//GEN-LAST:event_jAboutClicked
+
+    private void jLoadMemoryBlockActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jLoadMemoryBlockActionPerformed
+          boolean pau = m.isPaused();
+        m.stopEmulation();
+        bopn.setLocationRelativeTo(this);
+        bopn.showDialog();
+        bopn.setAlwaysOnTop(true); 
+    }//GEN-LAST:event_jLoadMemoryBlockActionPerformed
+
+    private void jSaveMemoryBlockActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSaveMemoryBlockActionPerformed
+       boolean pau = m.isPaused();
+        m.stopEmulation();
+        bsav.setLocationRelativeTo(this);
+        bsav.showDialog(); 
+        bsav.setAlwaysOnTop(true); 
+    }//GEN-LAST:event_jSaveMemoryBlockActionPerformed
+
+    private void jDebuggerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jDebuggerActionPerformed
+        boolean pau = m.isPaused();
+        m.stopEmulation();
+        deb.showDialog(); 
+        deb.setAlwaysOnTop(true);
+    }//GEN-LAST:event_jDebuggerActionPerformed
+
+    private void jResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jResetActionPerformed
+        if(m.isPaused()){
+            m.startEmulation();
+        }
+        m.Reset(true);
+        m.clearScreen();
+    }//GEN-LAST:event_jResetActionPerformed
+
+    private void jPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPauseActionPerformed
+        if(m.isPaused()){
+            m.startEmulation();
+        }else{
+            m.stopEmulation();
+        }
+    }//GEN-LAST:event_jPauseActionPerformed
 
     private void initEmulator() {
         m = new Iq();
@@ -449,15 +473,19 @@ public class JIQ151 extends javax.swing.JFrame {
     private javax.swing.JFileChooser fc;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenu jMenu3;
-    private javax.swing.JMenu jMenu4;
-    private javax.swing.JMenu jMenu5;
-    private javax.swing.JMenu jMenu6;
     private javax.swing.JMenu jMenu7;
+    private javax.swing.JMenu jMenu8;
+    private javax.swing.JMenu jMenu9;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
-    private javax.swing.JPopupMenu.Separator jSeparator3;
+    private javax.swing.JPopupMenu.Separator jSeparator4;
+    private javax.swing.JPopupMenu.Separator jSeparator5;
     private javax.swing.JMenuItem mExit;
     private javax.swing.JCheckBoxMenuItem mInvert;
     private javax.swing.JMenuItem mLoad;

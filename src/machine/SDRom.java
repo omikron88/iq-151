@@ -94,19 +94,25 @@ public class SDRom extends Thread implements Pio8255Notify {
 
     //přepne stav LED v pravem dolnim rohu
     private void blinkLED() {
-        if (lblLED.getIcon() != icoLedGray) {
-            turnoffLED();
-        } else {
-            turnonLED();
+        if (lblLED != null) {
+            if (lblLED.getIcon() != icoLedGray) {
+                turnoffLED();
+            } else {
+                turnonLED();
+            }
         }
     }
     //zhasne LED v pravem dolnim rohu
     private void turnoffLED() {
-        lblLED.setIcon(icoLedGray);
+        if (lblLED != null) {
+            lblLED.setIcon(icoLedGray);
+        }
     }
     //rozsviti zelenou LED v pravem dolnim rohu
     private void turnonLED() {
-       lblLED.setIcon(icoLedGreen);
+        if (lblLED != null) {
+            lblLED.setIcon(icoLedGreen);
+        }
     }
 
     public Pio8255 getPio() {

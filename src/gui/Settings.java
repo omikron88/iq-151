@@ -31,7 +31,7 @@ public class Settings extends javax.swing.JDialog {
     
     public void showDialog(Config conf) {
         cf = conf;
-        setSize(388, 488);
+       
 
          if (cf.grafik) {
             bGrafik.setSelected(true);
@@ -44,6 +44,12 @@ public class Settings extends javax.swing.JDialog {
         }
          else {
             bSDROM.setSelected(false);            
+        }
+        if (cf.audio) {
+            bAudio.setSelected(true);
+        }
+         else {
+            bAudio.setSelected(false);            
         }
         if (cf.getMem64()) {
             b64KB.setSelected(true);
@@ -96,8 +102,6 @@ public class Settings extends javax.swing.JDialog {
             }
         }
         ResetNeeded = false;
-        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        setLocation((screen.width-getSize().width)/2, (screen.height-getSize().height)/2);
         setModal(true);
         setVisible(true);
     }
@@ -136,6 +140,7 @@ public class Settings extends javax.swing.JDialog {
         bGrafik = new javax.swing.JCheckBox();
         bSDROM = new javax.swing.JCheckBox();
         bOk = new javax.swing.JButton();
+        bAudio = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Settings");
@@ -371,7 +376,7 @@ public class Settings extends javax.swing.JDialog {
             AuxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(AuxPanelLayout.createSequentialGroup()
                 .addComponent(bGrafik)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(bSDROM)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
@@ -380,6 +385,13 @@ public class Settings extends javax.swing.JDialog {
         bOk.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bOkActionPerformed(evt);
+            }
+        });
+
+        bAudio.setText("Audio");
+        bAudio.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                bAudioItemStateChanged(evt);
             }
         });
 
@@ -392,8 +404,13 @@ public class Settings extends javax.swing.JDialog {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(AuxPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(60, 60, 60)
-                        .addComponent(bOk))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(60, 60, 60)
+                                .addComponent(bOk))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(bAudio))))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(MainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -415,13 +432,15 @@ public class Settings extends javax.swing.JDialog {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(MonitorPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(MainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(18, 18, 18)
                         .addComponent(AuxPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGap(24, 24, 24))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(60, 60, 60)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(32, 32, 32)
+                        .addComponent(bAudio)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
                         .addComponent(bOk)
                         .addGap(48, 48, 48))))
         );
@@ -505,6 +524,11 @@ public class Settings extends javax.swing.JDialog {
         ResetNeeded = true;
     }//GEN-LAST:event_bSDROMItemStateChanged
 
+    private void bAudioItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_bAudioItemStateChanged
+        if(bAudio.isSelected()){cf.audio=true;}else{cf.audio=false;};
+        ResetNeeded = true;
+    }//GEN-LAST:event_bAudioItemStateChanged
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel AuxPanel;
@@ -521,6 +545,7 @@ public class Settings extends javax.swing.JDialog {
     private javax.swing.JRadioButton b64;
     private javax.swing.JRadioButton b64KB;
     private javax.swing.JRadioButton bAmos;
+    private javax.swing.JCheckBox bAudio;
     private javax.swing.JRadioButton bBasic6;
     private javax.swing.JRadioButton bBasicG;
     private javax.swing.JRadioButton bCPMfel;

@@ -51,8 +51,6 @@ public class BinOpen extends javax.swing.JFrame {
 
 
      public void showDialog() {
-        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        setLocation((screen.width - getSize().width) / 2, (screen.height - getSize().height) / 2);
         refreshDlg();
         setVisible(true);
     }
