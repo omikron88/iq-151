@@ -2,6 +2,8 @@ package machine;
 
 import java.io.FileOutputStream;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
@@ -35,7 +37,7 @@ public class Sound extends Thread {
     private boolean bEnabled;
     
     //Buffer pro zvukova data
-    public class SndBuffer {
+    public class SndBuffer extends Thread{
         byte[] data = null;
         int nPosition;
         private long lEmptyTime;
@@ -71,7 +73,7 @@ public class Sound extends Thread {
                 
             }
         }
-        
+               
         //metoda pro periodicke vkladani predchozi hodnoty do bufferu
         public boolean putToBuffer() {
             boolean bRet = bIsFull; 
@@ -221,6 +223,6 @@ public class Sound extends Thread {
         playBuffer=fillBuffer;
         fillBuffer=tmpBuffer;
     }
-
+    
 
 }

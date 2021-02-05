@@ -14,6 +14,7 @@ public class Config {
 
     public boolean grafik = true;
     public boolean sdrom = false;
+    public boolean sdromautorun = false;
     public boolean audio = false;
     public boolean V64ena32=false;
    
@@ -85,6 +86,16 @@ public class Config {
     public void setSDRom(boolean b) {
         if (b!=sdrom) {
             sdrom = b;
+        }
+    }
+    
+    public boolean getSDRomAutorun() {
+        return sdromautorun;
+    }
+    
+    public void setSDRomAutorun(boolean b) {
+        if (b!=sdromautorun) {
+            sdromautorun = b;
         }
     }
     

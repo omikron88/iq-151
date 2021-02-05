@@ -7,7 +7,6 @@ package machine;
 import gui.JIQScreen;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,11 +45,10 @@ public class Iq extends Thread
     private SDRom sdrom;
     private Debugger deb;
     public Sound audio;
+    public boolean bAutoRunAfterReset=false;
+    public int nAutoRunBreakAddress=0;
+    public boolean bAutoRunBPointPassed=false;
     
-    public FileInputStream reader=null;
-    boolean bReadyToSend=false;
-    public FileOutputStream writer=null;
-    boolean bReadyToWrite=false;
     int lastchar=0;
 		
     private boolean paused;
@@ -72,17 +70,12 @@ public class Iq extends Thread
     
     public Iq() {                
         img = new BufferedImage(sirka, vyska, BufferedImage.TYPE_INT_RGB);
-     //   px = ((DataBufferByte) img.getRaster().getDataBuffer()).getBankData()[0];
-        try {
-             reader = new FileInputStream(utils.Config.getMyPath()+"tapein.txt");            
-        } catch (FileNotFoundException ex) {
-            reader=null;
-        }
         cfg = new Config();
         utils.Config.LoadConfig();
         cfg.setMain((byte)utils.Config.mainmodule);
         cfg.setGrafik(utils.Config.grafik);
         cfg.setSDRom(utils.Config.sdrom);
+        cfg.setSDRomAutorun(utils.Config.sdromautorun);
         cfg.setMem64(utils.Config.mem64);
         cfg.setVideo((byte)utils.Config.video64);
         cfg.setMonitor((byte)utils.Config.monitor);
@@ -106,7 +99,7 @@ public class Iq extends Thread
         audio.init();        
         sdrom=null;
         if(cfg.getSDRom()){
-         sdrom = new SDRom(this);         
+         sdrom = new SDRom(this);
         }
         tap = new Tape(this);
         
@@ -182,6 +175,7 @@ public class Iq extends Thread
         mem.setBootstrap(true);
         clk.reset();
         ic.Reset();
+        
         cpu.reset();
         pio.Reset();
         key.Reset();
@@ -194,7 +188,27 @@ public class Iq extends Thread
                                    dstg64[i+1024]=dstg64[i]+8192;
                                   }
         
-//        cpu.setBreakpoint(0xf76b, true);
+        //nastaveni Autorun SDROM
+        if ((cfg.getSDRom()) && (cfg.getSDRomAutorun())) {
+            if (bAutoRunAfterReset) {
+                //smazu predchozi BP, pokud ho nebylo dosazeno
+                cpu.setBreakpoint(nAutoRunBreakAddress, false);
+            }
+            if (cfg.getMain() == 1) {
+                //Basic 6
+                nAutoRunBreakAddress = 0xccd4;
+            } else {
+                if (cfg.getMain() == 2) {
+                    //Basic G
+                    nAutoRunBreakAddress = 0xcd79;
+                } else {
+                    //Monitor
+                    nAutoRunBreakAddress = 0xf1ce;
+                }
+            }
+            cpu.setBreakpoint(nAutoRunBreakAddress, true);
+            bAutoRunAfterReset = true;
+        }
     }
     
     public synchronized void startEmulation() {
@@ -620,7 +634,7 @@ public class Iq extends Thread
                 }
                 break;
             case 0x87:                
-                //obsluha zvuku v pripade, ze je port C nastavovan pres port CWR
+                //obsluha zvuku v pripade, ze je port C nastavovan pres port CWR                
                 int nCorrected = value & 0x8f;
                 if ((nCorrected == 6) || (nCorrected == 7)) {
                     if (audio.isEnabled()) {
@@ -629,6 +643,7 @@ public class Iq extends Thread
                 } else {
                     pio.CpuWrite(pio.PP_CWR, value);
                 }
+
                 break;
             case 0x88:
                 ic.writePortA0(value);

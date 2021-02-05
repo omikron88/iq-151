@@ -53,6 +53,7 @@ public class Config {
     public static int monitor=10;
     public static boolean grafik=true;
     public static boolean sdrom=false;
+    public static boolean sdromautorun=false;
     public static int video64=0;
     public static boolean mem64=false;
     public static boolean audio=false;
@@ -98,6 +99,7 @@ public class Config {
      prop.setProperty("MAINMODULE", String.valueOf(mainmodule));
      prop.setProperty("GRAFIK", String.valueOf(grafik));
      prop.setProperty("SDROM", String.valueOf(sdrom));
+     prop.setProperty("SDROMAUTO", String.valueOf(sdromautorun));     
      prop.setProperty("AUDIO", String.valueOf(audio));
      prop.setProperty("VIDEO64", String.valueOf(video64));   
      prop.setProperty("MEM64", String.valueOf(mem64)); 
@@ -183,6 +185,7 @@ public class Config {
         monitor=parseIntSafe(prop.getProperty("MONITOR"),10);
         grafik=parseBooleanSafe(prop.getProperty("GRAFIK"),true);
         sdrom=parseBooleanSafe(prop.getProperty("SDROM"),false);
+        sdromautorun=parseBooleanSafe(prop.getProperty("SDROMAUTO"),false);
         audio=parseBooleanSafe(prop.getProperty("AUDIO"),false);
         video64=parseIntSafe(prop.getProperty("VIDEO64"),0);
         mem64=parseBooleanSafe(prop.getProperty("MEM64"),false);

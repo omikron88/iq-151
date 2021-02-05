@@ -192,7 +192,7 @@ public class SDRom extends Thread implements Pio8255Notify {
         while (bRunning) {
 
             File[] listOfFiles = new File(utils.Config.getMyPath() + "SDRoot").listFiles();
-            //nejdrive poslu adresare
+            //nejdrive zjistim nejvyssi index souboru save
             for (int i = 0; i < listOfFiles.length; i++) {
                 if(listOfFiles[i].getName().toUpperCase().startsWith("SAVE")){
                     String strNum=listOfFiles[i].getName().substring(4, 7);

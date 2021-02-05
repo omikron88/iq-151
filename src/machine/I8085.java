@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 public class I8085 {
 
+    boolean bStartWrite=false;
     public final Clock clock;
     private final MemIoOps MemIoImpl;
     private final NotifyOps NotifyImpl;
@@ -748,7 +749,7 @@ public class I8085 {
         bMemBP = false;
         int nStartTStates = clock.getTstates();
         while (clock.getTstates() < statesLimit) {
-            //generovani pravidelnych zvukovych samplu v bufferu
+            //generovani pravidelnych zvukovych samplu v bufferu            
             if (((Iq) NotifyImpl).audio.isEnabled()) {
                 Sound.nDecrementSampleStates -= (clock.getTstates() - nStartTStates);
                 nStartTStates = clock.getTstates();
@@ -757,7 +758,7 @@ public class I8085 {
                     ((Iq) NotifyImpl).audio.fillBuffer.putToBuffer();
                 }
             }
-
+            
             if (activeTRAP) {
                 activeTRAP = false;
                 trap();
@@ -784,14 +785,44 @@ public class I8085 {
             }
 
             if (breakpointAt[regPC]) {
-                opCode = NotifyImpl.atAddress(regPC, opCode);
-                Iq m = (Iq) NotifyImpl;
-                m.stopEmulation();
+                if ((utils.Config.sdrom) && (utils.Config.sdromautorun) && (regPC == ((Iq) NotifyImpl).nAutoRunBreakAddress) && (((Iq) NotifyImpl).bAutoRunAfterReset)) {
+                    //spusteni SDROM Autorun
+                    setBreakpoint(regPC, false);
+                    ((Iq) NotifyImpl).bAutoRunAfterReset = false;     
+                    MemIoImpl.poke8(3, (byte)85);
+                    push(0);
+                    setRegPC(0xF3BA); //L v monitoru                   
+                } else {
+                    //klasicky Breakpoint spusti Debugger
+                    opCode = NotifyImpl.atAddress(regPC, opCode);
+                    Iq m = (Iq) NotifyImpl;
+                    m.stopEmulation();
 
-                m.getDebugger().showDialog();
-                break;
+                    m.getDebugger().showDialog();
+                    break;
+                }
             }
-
+            /*
+            if (regPC == 0xc800) {
+                //bStartWrite = true;
+            }
+            if (bStartWrite) {
+                String strAsmfile = utils.Config.getMyPath() + "ASMLog.txt";
+                try {
+                    Z80Dis disassembler = new Z80Dis();
+                    Z80Dis.Opcodes = new int[65536];
+                    for (int i = getRegPC(); i < getRegPC() + 5; i++) {
+                        Z80Dis.Opcodes[i] = (0xff) & (byte) MemIoImpl.peek8(i);
+                    }
+                    byte OpcodeLen = disassembler.OpcodeLen(getRegPC());
+                    PrintWriter f = new PrintWriter(new java.io.OutputStreamWriter(new java.io.FileOutputStream(strAsmfile, true)));
+                    f.println(String.format("%04X\t%s", getRegPC(), disassembler.Disassemble(getRegPC())));
+                    f.close();
+                } catch (FileNotFoundException ex) {
+                }
+            }
+            */
+            
             opCode = MemIoImpl.fetchOpcode(regPC);
 
             if (!intack) {

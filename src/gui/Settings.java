@@ -41,9 +41,17 @@ public class Settings extends javax.swing.JDialog {
         }
          if (cf.sdrom) {
             bSDROM.setSelected(true);
+            jAutorun.setEnabled(true);
         }
          else {
-            bSDROM.setSelected(false);            
+            bSDROM.setSelected(false); 
+            jAutorun.setEnabled(false);
+        }
+        if (cf.sdromautorun) {
+            jAutorun.setSelected(true);
+        }
+         else {
+            jAutorun.setSelected(false);            
         }
         if (cf.audio) {
             bAudio.setSelected(true);
@@ -139,6 +147,7 @@ public class Settings extends javax.swing.JDialog {
         AuxPanel = new javax.swing.JPanel();
         bGrafik = new javax.swing.JCheckBox();
         bSDROM = new javax.swing.JCheckBox();
+        jAutorun = new javax.swing.JCheckBox();
         bOk = new javax.swing.JButton();
         bAudio = new javax.swing.JCheckBox();
 
@@ -361,6 +370,13 @@ public class Settings extends javax.swing.JDialog {
             }
         });
 
+        jAutorun.setText("Autorun");
+        jAutorun.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jAutorunActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout AuxPanelLayout = new javax.swing.GroupLayout(AuxPanel);
         AuxPanel.setLayout(AuxPanelLayout);
         AuxPanelLayout.setHorizontalGroup(
@@ -369,15 +385,20 @@ public class Settings extends javax.swing.JDialog {
                 .addContainerGap()
                 .addGroup(AuxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(bGrafik)
-                    .addComponent(bSDROM))
-                .addContainerGap(103, Short.MAX_VALUE))
+                    .addGroup(AuxPanelLayout.createSequentialGroup()
+                        .addComponent(bSDROM)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jAutorun)))
+                .addContainerGap(22, Short.MAX_VALUE))
         );
         AuxPanelLayout.setVerticalGroup(
             AuxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(AuxPanelLayout.createSequentialGroup()
                 .addComponent(bGrafik)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(bSDROM)
+                .addGroup(AuxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(bSDROM)
+                    .addComponent(jAutorun))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
@@ -419,7 +440,7 @@ public class Settings extends javax.swing.JDialog {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(MonitorPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(VideoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(13, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -521,6 +542,7 @@ public class Settings extends javax.swing.JDialog {
 
     private void bSDROMItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_bSDROMItemStateChanged
         if (bSDROM.isSelected()){cf.sdrom=true;}else{cf.sdrom=false;};
+        jAutorun.setEnabled(bSDROM.isSelected());
         ResetNeeded = true;
     }//GEN-LAST:event_bSDROMItemStateChanged
 
@@ -528,6 +550,11 @@ public class Settings extends javax.swing.JDialog {
         if(bAudio.isSelected()){cf.audio=true;}else{cf.audio=false;};
         ResetNeeded = true;
     }//GEN-LAST:event_bAudioItemStateChanged
+
+    private void jAutorunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAutorunActionPerformed
+        if (jAutorun.isSelected()){cf.sdromautorun=true;}else{cf.sdromautorun=false;};
+        ResetNeeded = true;
+    }//GEN-LAST:event_jAutorunActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -556,6 +583,7 @@ public class Settings extends javax.swing.JDialog {
     private javax.swing.JButton bOk;
     private javax.swing.JCheckBox bSDROM;
     private javax.swing.JRadioButton bStandard;
+    private javax.swing.JCheckBox jAutorun;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 }
