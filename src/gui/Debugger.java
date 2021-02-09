@@ -19,6 +19,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.text.DecimalFormat;
 import java.util.Date;
+import javax.swing.ImageIcon;
 import javax.swing.JScrollPane;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.DefaultHighlighter;
@@ -68,6 +69,7 @@ public class Debugger extends javax.swing.JFrame {
     /** Creates new form Debugger */
     public Debugger(Iq inM) {
         initComponents();
+        setIconImage((new ImageIcon(getClass().getResource("/icons/debugger.png")).getImage()));
         ((DefaultCaret)jTextAsmCode.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
         jScrollPane1.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
@@ -299,8 +301,12 @@ public class Debugger extends javax.swing.JFrame {
     public void fillStack(){
        jTextStack.setText("");
        int nSPAdr=m.cpu.getRegSP();
-       for(int i=nSPAdr;i<nSPAdr+10;i+=2){
-          String strLine=String.format("#%04X #%04X\n",i,256*((0xff) & (byte)m.mem.readByte(i+1))+((0xff) & (byte)m.mem.readByte(i)));
+       for(int i=nSPAdr;i<nSPAdr+10;i+=2){           
+           int i1=i;
+           int i2=i+1;
+           if(i1>65535) i1=i1-65535;
+           if(i2>65535) i2=i2-65535;   
+          String strLine=String.format("#%04X #%04X\n",i1,256*((0xff) & (byte)m.mem.readByte(i2))+((0xff) & (byte)m.mem.readByte(i1)));
           jTextStack.append(strLine);  
        }
       

@@ -1,5 +1,6 @@
 package gui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -48,7 +49,9 @@ public class JIQScreen extends javax.swing.JPanel {
         
         setMinimumSize(new Dimension(566, 593));
         setMaximumSize(new Dimension(566, 593));
-        setPreferredSize(new Dimension(566, 601));
+        setPreferredSize(new Dimension(566, 601));        
+         setSize(new Dimension(566, 601));
+        //setPreferredSize(new Dimension(566, 593));
     } // constructor
 
     public void setImage(BufferedImage img) {
@@ -72,6 +75,9 @@ public class JIQScreen extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+
+        setDoubleBuffered(false);
+        setMaximumSize(new java.awt.Dimension(396, 296));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

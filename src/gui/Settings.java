@@ -6,6 +6,7 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import javax.swing.ImageIcon;
 import machine.Config;
 
 /**
@@ -22,6 +23,7 @@ public class Settings extends javax.swing.JDialog {
      */
     public Settings() {
         initComponents();
+        setIconImage((new ImageIcon(getClass().getResource("/icons/settings.png")).getImage()));
         ResetNeeded = false;
     }
     

@@ -4,27 +4,17 @@
  */
 package gui;
 
-import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.ComponentOrientation;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.LayoutManager;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.Robot;
-import java.awt.event.InputEvent;
+import java.awt.Image;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import machine.Config;
 import machine.Iq;
 
@@ -55,11 +45,14 @@ public class JIQ151 extends javax.swing.JFrame {
      */
     public JIQ151() {
         initComponents();
+        setIconImage((new ImageIcon(getClass().getResource("/icons/iq.png")).getImage()));
         //presun polozky menu About doprava
         jMenuBar1.remove(jMenu7);
         jMenuBar1.add(Box.createHorizontalGlue());
         jMenuBar1.add(jMenu7);        
-        getContentPane().setBackground(Color.black);
+        jToolBar1.setBackground(new Color(240,240,240));
+        getContentPane().setBackground(new Color(240,240,240));
+        //getContentPane().setBackground(Color.black);
         initEmulator();
         pack();
         if(utils.Config.sdrom){
@@ -75,13 +68,14 @@ public class JIQ151 extends javax.swing.JFrame {
             lblLed.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/gray.png")));
             m.setSDRomLED(lblLed);
             JPanel bottomPanel = new JPanel(new BorderLayout());
+            bottomPanel.setBackground(new Color(240,240,240));
             bottomPanel.add(lblLed, BorderLayout.LINE_END);
             ledPanel = new JPanel(new BorderLayout());
-            ledPanel.setBackground(Color.black);
+            ledPanel.setBackground(new Color(240,240,240));
             ledPanel.add(bottomPanel, BorderLayout.PAGE_END);
-            this.getContentPane().add(ledPanel);                       
-        }
-        setSize(566, scr.getPreferredSize().height+lblLed.getPreferredSize().height);   
+            this.getContentPane().add(ledPanel,BorderLayout.PAGE_END);             
+        }        
+        setSize(566, scr.getPreferredSize().height+lblLed.getPreferredSize().height+jToolBar1.getPreferredSize().height);
         scr.repaint();
     }
     
@@ -90,7 +84,7 @@ public class JIQ151 extends javax.swing.JFrame {
             this.getContentPane().remove(ledPanel);
             ledPanel=null;
         }
-        setSize(566, scr.getPreferredSize().height);
+        setSize(566, scr.getPreferredSize().height+jToolBar1.getPreferredSize().height);
     }
 
     /**
@@ -104,6 +98,15 @@ public class JIQ151 extends javax.swing.JFrame {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         fc = new javax.swing.JFileChooser();
+        jToolBar1 = new javax.swing.JToolBar();
+        jResetIco = new javax.swing.JButton();
+        jPause = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        jLoadMem = new javax.swing.JButton();
+        jSaveMem = new javax.swing.JButton();
+        jDebugger = new javax.swing.JButton();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
+        jSettings = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         mLoad = new javax.swing.JMenuItem();
@@ -129,12 +132,89 @@ public class JIQ151 extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("jIQ151");
-        setPreferredSize(new java.awt.Dimension(566, 590));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
             }
         });
+
+        jToolBar1.setRollover(true);
+
+        jResetIco.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/reset.png"))); // NOI18N
+        jResetIco.setToolTipText("Reset");
+        jResetIco.setFocusable(false);
+        jResetIco.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jResetIco.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jResetIco.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jResetIcoActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jResetIco);
+
+        jPause.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/pause.png"))); // NOI18N
+        jPause.setToolTipText("Pause");
+        jPause.setFocusable(false);
+        jPause.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jPause.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jPause.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jPauseActionPerformed1(evt);
+            }
+        });
+        jToolBar1.add(jPause);
+        jToolBar1.add(jSeparator3);
+
+        jLoadMem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/binaryopn.png"))); // NOI18N
+        jLoadMem.setToolTipText("Load Memory Block");
+        jLoadMem.setFocusable(false);
+        jLoadMem.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jLoadMem.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jLoadMem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jLoadMemActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jLoadMem);
+
+        jSaveMem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/binarysav.png"))); // NOI18N
+        jSaveMem.setToolTipText("Save Memory Block");
+        jSaveMem.setFocusable(false);
+        jSaveMem.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jSaveMem.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jSaveMem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jSaveMemActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jSaveMem);
+
+        jDebugger.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/debugger.png"))); // NOI18N
+        jDebugger.setToolTipText("Debugger");
+        jDebugger.setFocusable(false);
+        jDebugger.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jDebugger.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jDebugger.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jDebuggerActionPerformed1(evt);
+            }
+        });
+        jToolBar1.add(jDebugger);
+        jToolBar1.add(jSeparator6);
+
+        jSettings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/settings.png"))); // NOI18N
+        jSettings.setToolTipText("Settings");
+        jSettings.setFocusable(false);
+        jSettings.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jSettings.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jSettingsActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jSettings);
+
+        getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
 
         jMenuBar1.setMaximumSize(new java.awt.Dimension(282, 500));
 
@@ -412,16 +492,43 @@ public class JIQ151 extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jPauseActionPerformed
 
+    private void jResetIcoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jResetIcoActionPerformed
+        jResetActionPerformed(null);
+    }//GEN-LAST:event_jResetIcoActionPerformed
+
+    private void jPauseActionPerformed1(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPauseActionPerformed1
+        jPauseActionPerformed(null);
+    }//GEN-LAST:event_jPauseActionPerformed1
+
+    private void jDebuggerActionPerformed1(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jDebuggerActionPerformed1
+        boolean pau = m.isPaused();
+        m.stopEmulation();
+        deb.showDialog(); 
+        deb.setAlwaysOnTop(true);
+    }//GEN-LAST:event_jDebuggerActionPerformed1
+
+    private void jSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSettingsActionPerformed
+        mSettingsActionPerformed(null);
+    }//GEN-LAST:event_jSettingsActionPerformed
+
+    private void jLoadMemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jLoadMemActionPerformed
+       jLoadMemoryBlockActionPerformed(null);
+    }//GEN-LAST:event_jLoadMemActionPerformed
+
+    private void jSaveMemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSaveMemActionPerformed
+       jSaveMemoryBlockActionPerformed(null);
+    }//GEN-LAST:event_jSaveMemActionPerformed
+
     private void initEmulator() {
         m = new Iq();
-        scr = new JIQScreen();
+        scr = new JIQScreen();       
         m.setScreen(scr);
         scr.setImage(m.getImage());
         deb=new Debugger(m);        
         bopn=new BinOpen(m);
         bsav=new BinSave(m);
-        m.setDebugger(deb);
-        getContentPane().add(scr, BorderLayout.CENTER);
+        m.setDebugger(deb);        
+        getContentPane().add(scr, BorderLayout.LINE_START);
         pack();         
         addKeyListener(m.getKeyboard());
         m.start();
@@ -472,6 +579,8 @@ public class JIQ151 extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JFileChooser fc;
+    private javax.swing.JButton jDebugger;
+    private javax.swing.JButton jLoadMem;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu7;
@@ -483,10 +592,17 @@ public class JIQ151 extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
+    private javax.swing.JButton jPause;
+    private javax.swing.JButton jResetIco;
+    private javax.swing.JButton jSaveMem;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JPopupMenu.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JButton jSettings;
+    private javax.swing.JToolBar jToolBar1;
     private javax.swing.JMenuItem mExit;
     private javax.swing.JCheckBoxMenuItem mInvert;
     private javax.swing.JMenuItem mLoad;

@@ -9,6 +9,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -29,10 +30,11 @@ public class About extends JDialog {
     Box b2 = Box.createHorizontalBox();   
     b2.add(new JLabel("IQ151 emulator written in pure Java"));
     Box b3 = Box.createHorizontalBox();
-    b3.add(new JLabel("Build date 5.2.2021"));
+    b3.add(new JLabel("Build date 9.2.2021"));
     b.add(b2, "Center");
     b.add(b3, "Center");
     b.add(Box.createGlue());
+    setIconImage((new ImageIcon(getClass().getResource("/icons/iq.png")).getImage()));
     getContentPane().add(b, "Center");
 
     JPanel p2 = new JPanel();

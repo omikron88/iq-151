@@ -16,6 +16,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import machine.Iq;
 import utils.Config;
@@ -30,6 +31,7 @@ public class BinOpen extends javax.swing.JFrame {
     /** Creates new form BinOpen */
     public BinOpen(Iq inM) {
         initComponents();
+        setIconImage((new ImageIcon(getClass().getResource("/icons/binaryopn.png")).getImage()));
         Config.LoadConfig();
         m = inM;
         this.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -68,9 +70,9 @@ public class BinOpen extends javax.swing.JFrame {
         jCheckBox1 = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Nahrat soubor do pameti");
+        setTitle("Upload file into memory");
 
-        jLabel1.setText("Soubor");
+        jLabel1.setText("File");
 
         jButtonBinOpen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/osn_open.png"))); // NOI18N
         jButtonBinOpen.addActionListener(new java.awt.event.ActionListener() {
@@ -79,7 +81,7 @@ public class BinOpen extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setText("vložit od adresy:");
+        jLabel2.setText("insert from address:");
 
         jNumberTextSavAdr.setText("0000");
         jNumberTextSavAdr.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -102,7 +104,7 @@ public class BinOpen extends javax.swing.JFrame {
             }
         });
 
-        jCheckBox1.setText("spustit od adresy:");
+        jCheckBox1.setText("run from address:");
         jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBox1ActionPerformed(evt);
@@ -128,7 +130,7 @@ public class BinOpen extends javax.swing.JFrame {
                     .addComponent(jNumberTextRunAdr, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(276, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButtonOK)
                 .addContainerGap())
         );

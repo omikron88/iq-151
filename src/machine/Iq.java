@@ -6,13 +6,10 @@ package machine;
 
 import gui.JIQScreen;
 import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import gui.Debugger;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.Arrays;
 import javax.swing.JLabel;
 
