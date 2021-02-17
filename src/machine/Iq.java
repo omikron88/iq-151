@@ -10,6 +10,7 @@ import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import gui.Debugger;
+import gui.JIQ151;
 import java.util.Arrays;
 import javax.swing.JLabel;
 
@@ -41,6 +42,7 @@ public class Iq extends Thread
     private Grafik graf;
     private SDRom sdrom;
     private Debugger deb;
+    private JIQ151 frame;
     public Sound audio;
     public boolean bAutoRunAfterReset=false;
     public int nAutoRunBreakAddress=0;
@@ -107,6 +109,10 @@ public class Iq extends Thread
      public void setDebugger(Debugger indeb){
         deb=indeb;
     }
+     
+     public void setFrame(JIQ151 inJIQ){
+        frame=inJIQ;
+    }
     
     public Debugger getDebugger(){
         return deb;
@@ -164,6 +170,7 @@ public class Iq extends Thread
         audio.deinit();
         audio.setEnabled(cfg.getAudio());
         audio.init();
+        cpu.nStartAudioTStates=clk.getTstates();
         mem.Reset(dirty);
         if (zobrgr) {
             Arrays.fill(graf.GVRam, (byte)0);              
@@ -209,16 +216,20 @@ public class Iq extends Thread
     }
     
     public synchronized void startEmulation() {
+        frame.setPauseIcon(true);
         if (!paused)
             return;
         
         paused = false;
+
         Sound.nDecrementSampleStates=Sound.nOneSampleStates;
+        audio.fillBuffer.lEmptyTime=System.currentTimeMillis()+100;
         task = new IqTimer(this);
-        tim.scheduleAtFixedRate(task, 100, 20);
+        tim.scheduleAtFixedRate(task, 100, 20);       
        }
     
     public synchronized void stopEmulation() {
+        frame.setPauseIcon(false);
         if (paused)
             return;
         
@@ -236,11 +247,28 @@ public class Iq extends Thread
         
         ic.assertInt(6);
 
-        for(int t=0; t<40; t++) {               // half period of 1kHz
-            if (!paused){
-             cpu.execute(clk.getTstates()+1024); // is 1024 of 2MHz Tstates
-             khz1 = !khz1;
-             if (khz1) tapeout = tapeo;
+        for (int t = 0; t < 40; t++) {               // half period of 1kHz
+            if (!paused) {
+                cpu.execute(clk.getTstates() + 1024); // is 1024 of 2MHz Tstates
+                khz1 = !khz1;
+                if (khz1) {
+                    tapeout = tapeo;
+                }
+            }
+
+        }
+        if (!paused) {
+            //System.out.println("END 2MHZ Cycle,buffersize=" + audio.fillBuffer.nPosition);
+
+            if (!audio.fillBuffer.bState) {
+                //synchronizace zvuku v 20ms intervalech
+                if (audio.fillBuffer.nPosition != 0) { 
+                    audio.fillBuffer.emptyNoBitChange();
+                    audio.nSampleReturnedCorrection=0;
+                    cpu.nAudioStatesNextCycleCorrection=0;
+                }
+
+                audio.fillBuffer.bState = true;
             }
         }
 
@@ -296,6 +324,7 @@ public class Iq extends Thread
                             }
                  } //for
         }  //video64
+
 // a překreslit celou plochu        
         scr.repaint();
 

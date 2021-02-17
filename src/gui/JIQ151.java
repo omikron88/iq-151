@@ -40,6 +40,8 @@ public class JIQ151 extends javax.swing.JFrame {
     private Debugger deb;
     private BinOpen bopn;
     private BinSave bsav;
+    javax.swing.ImageIcon icoRun= new javax.swing.ImageIcon(getClass().getResource("/icons/run.png"));
+    javax.swing.ImageIcon icoPause= new javax.swing.ImageIcon(getClass().getResource("/icons/pause.png"));
     /**
      * Creates new form JIQ151
      */
@@ -359,6 +361,7 @@ public class JIQ151 extends javax.swing.JFrame {
 
     private void mLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mLoadActionPerformed
         boolean pau = m.isPaused();
+        
         m.stopEmulation();
 
         fc.setDialogTitle("Open LOAD tape");
@@ -372,11 +375,15 @@ public class JIQ151 extends javax.swing.JFrame {
             }
         }
         
-        if (!pau) m.startEmulation();             
+        if (!pau) {
+            
+            m.startEmulation();
+        }             
     }//GEN-LAST:event_mLoadActionPerformed
 
     private void mSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mSaveActionPerformed
        boolean pau = m.isPaused();
+        
         m.stopEmulation();
         
         fc.setDialogTitle("Open SAVE tape");
@@ -392,7 +399,10 @@ public class JIQ151 extends javax.swing.JFrame {
             }
         }
         
-        if (!pau) m.startEmulation();
+        if (!pau) {
+            
+            m.startEmulation();
+        }
     }//GEN-LAST:event_mSaveActionPerformed
 
     private void mExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mExitActionPerformed
@@ -416,6 +426,7 @@ public class JIQ151 extends javax.swing.JFrame {
 
     private void mSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mSettingsActionPerformed
         boolean pau = m.isPaused();
+        
         m.stopEmulation();
         
         Settings set = new Settings();
@@ -444,7 +455,10 @@ public class JIQ151 extends javax.swing.JFrame {
         } else {
             removeLEDbar();
         }
-        if (!pau) m.startEmulation();
+        if (!pau) {
+            
+            m.startEmulation();
+        }
     }//GEN-LAST:event_mSettingsActionPerformed
 
     private void jAboutClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jAboutClicked
@@ -454,7 +468,8 @@ public class JIQ151 extends javax.swing.JFrame {
     }//GEN-LAST:event_jAboutClicked
 
     private void jLoadMemoryBlockActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jLoadMemoryBlockActionPerformed
-          boolean pau = m.isPaused();
+        boolean pau = m.isPaused();
+        
         m.stopEmulation();
         bopn.setLocationRelativeTo(this);
         bopn.showDialog();
@@ -463,7 +478,8 @@ public class JIQ151 extends javax.swing.JFrame {
 
     private void jSaveMemoryBlockActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSaveMemoryBlockActionPerformed
        boolean pau = m.isPaused();
-        m.stopEmulation();
+        
+       m.stopEmulation();
         bsav.setLocationRelativeTo(this);
         bsav.showDialog(); 
         bsav.setAlwaysOnTop(true); 
@@ -471,13 +487,24 @@ public class JIQ151 extends javax.swing.JFrame {
 
     private void jDebuggerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jDebuggerActionPerformed
         boolean pau = m.isPaused();
+        
         m.stopEmulation();
         deb.showDialog(); 
         deb.setAlwaysOnTop(true);
     }//GEN-LAST:event_jDebuggerActionPerformed
 
+    public void setPauseIcon(boolean bWhatIco) {
+        if (bWhatIco) {
+            jPause.setIcon(icoPause);
+        } else {
+            jPause.setIcon(icoRun);
+        }
+    }
+
+    
     private void jResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jResetActionPerformed
         if(m.isPaused()){
+            
             m.startEmulation();
         }
         m.Reset(true);
@@ -486,8 +513,10 @@ public class JIQ151 extends javax.swing.JFrame {
 
     private void jPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPauseActionPerformed
         if(m.isPaused()){
+            
             m.startEmulation();
         }else{
+            
             m.stopEmulation();
         }
     }//GEN-LAST:event_jPauseActionPerformed
@@ -502,6 +531,7 @@ public class JIQ151 extends javax.swing.JFrame {
 
     private void jDebuggerActionPerformed1(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jDebuggerActionPerformed1
         boolean pau = m.isPaused();
+        
         m.stopEmulation();
         deb.showDialog(); 
         deb.setAlwaysOnTop(true);
@@ -527,7 +557,8 @@ public class JIQ151 extends javax.swing.JFrame {
         deb=new Debugger(m);        
         bopn=new BinOpen(m);
         bsav=new BinSave(m);
-        m.setDebugger(deb);        
+        m.setDebugger(deb);  
+        m.setFrame(this);
         getContentPane().add(scr, BorderLayout.LINE_START);
         pack();         
         addKeyListener(m.getKeyboard());

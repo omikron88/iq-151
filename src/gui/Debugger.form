@@ -75,7 +75,7 @@
                               <Component id="jTextBP6" min="-2" pref="63" max="-2" attributes="0"/>
                           </Group>
                           <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabelTStates" alignment="0" max="32767" attributes="0"/>
+                          <Component id="jLabelTStates" alignment="0" pref="190" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
@@ -208,7 +208,7 @@
             <Property name="editable" type="boolean" value="false"/>
             <Property name="columns" type="int" value="20"/>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Courier New" size="12" style="1"/>
+              <Font name="DejaVu Sans Mono" size="12" style="1"/>
             </Property>
             <Property name="rows" type="int" value="6"/>
           </Properties>
@@ -227,10 +227,10 @@
       <SubComponents>
         <Component class="javax.swing.JTextArea" name="jTextRegistry">
           <Properties>
-            <Property name="columns" type="int" value="20"/>
             <Property name="editable" type="boolean" value="false"/>
+            <Property name="columns" type="int" value="20"/>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Courier New" size="12" style="1"/>
+              <Font name="DejaVu Sans Mono" size="12" style="1"/>
             </Property>
             <Property name="rows" type="int" value="5"/>
             <Property name="autoscrolls" type="boolean" value="false"/>
@@ -250,10 +250,10 @@
       <SubComponents>
         <Component class="javax.swing.JTextArea" name="jTextFlags">
           <Properties>
-            <Property name="columns" type="int" value="20"/>
             <Property name="editable" type="boolean" value="false"/>
+            <Property name="columns" type="int" value="20"/>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Courier New" size="12" style="1"/>
+              <Font name="DejaVu Sans Mono" size="12" style="1"/>
             </Property>
             <Property name="rows" type="int" value="5"/>
             <Property name="autoscrolls" type="boolean" value="false"/>
@@ -270,10 +270,10 @@
       <SubComponents>
         <Component class="javax.swing.JTextArea" name="jTextStack">
           <Properties>
-            <Property name="columns" type="int" value="20"/>
             <Property name="editable" type="boolean" value="false"/>
+            <Property name="columns" type="int" value="20"/>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Courier New" size="12" style="1"/>
+              <Font name="DejaVu Sans Mono" size="12" style="1"/>
             </Property>
             <Property name="rows" type="int" value="5"/>
           </Properties>
@@ -297,7 +297,7 @@
             <Property name="editable" type="boolean" value="false"/>
             <Property name="columns" type="int" value="20"/>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Courier New" size="12" style="1"/>
+              <Font name="DejaVu Sans Mono" size="12" style="1"/>
             </Property>
             <Property name="rows" type="int" value="5"/>
           </Properties>
@@ -375,7 +375,7 @@
     <Component class="javax.swing.JLabel" name="jLabelTStates">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-          <Font name="Courier New" size="12" style="1"/>
+          <Font name="DejaVu Sans" size="12" style="1"/>
         </Property>
         <Property name="text" type="java.lang.String" value="0"/>
       </Properties>

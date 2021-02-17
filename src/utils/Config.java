@@ -56,7 +56,7 @@ public class Config {
     public static boolean sdromautorun=false;
     public static int video64=0;
     public static boolean mem64=false;
-    public static boolean audio=false;
+    public static boolean audio=true;
     
     public static String getMyPath() {
         String retVal = "";
@@ -186,7 +186,7 @@ public class Config {
         grafik=parseBooleanSafe(prop.getProperty("GRAFIK"),true);
         sdrom=parseBooleanSafe(prop.getProperty("SDROM"),false);
         sdromautorun=parseBooleanSafe(prop.getProperty("SDROMAUTO"),false);
-        audio=parseBooleanSafe(prop.getProperty("AUDIO"),false);
+        audio=parseBooleanSafe(prop.getProperty("AUDIO"),true);
         video64=parseIntSafe(prop.getProperty("VIDEO64"),0);
         mem64=parseBooleanSafe(prop.getProperty("MEM64"),false);
   

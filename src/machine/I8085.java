@@ -10,6 +10,8 @@ public class I8085 {
     private final NotifyOps NotifyImpl;
     public boolean bMemBP = false;
     private int opCode;
+    int nStartAudioTStates=0;
+    public int nAudioStatesNextCycleCorrection=0;
 
     private boolean execDone;
 
@@ -75,6 +77,8 @@ public class I8085 {
         MemIoImpl = memory;
         NotifyImpl = notify;
         execDone = false;
+        nStartAudioTStates = clock.getTstates();
+        nAudioStatesNextCycleCorrection=0;
         Arrays.fill(breakpointAt, false);
         reset();
     }
@@ -747,17 +751,9 @@ public class I8085 {
 
     public final void execute(int statesLimit) {
         bMemBP = false;
-        int nStartTStates = clock.getTstates();
+        Sound.nDecrementSampleStates +=nAudioStatesNextCycleCorrection;
         while (clock.getTstates() < statesLimit) {
-            //generovani pravidelnych zvukovych samplu v bufferu            
-            if (((Iq) NotifyImpl).audio.isEnabled()) {
-                Sound.nDecrementSampleStates -= (clock.getTstates() - nStartTStates);
-                nStartTStates = clock.getTstates();
-                if (Sound.nDecrementSampleStates <= 0) {
-                    Sound.nDecrementSampleStates += Sound.nOneSampleStates;
-                    ((Iq) NotifyImpl).audio.fillBuffer.putToBuffer();
-                }
-            }
+            
             
             if (activeTRAP) {
                 activeTRAP = false;
@@ -844,8 +840,28 @@ public class I8085 {
             }
 
             intack = false;
-
+            
+            //generovani pravidelnych zvukovych samplu do bufferu            
+            if (((Iq) NotifyImpl).audio.isEnabled()) {
+                Sound.nDecrementSampleStates -= (clock.getTstates() - nStartAudioTStates);
+               
+                if(Sound.nDecrementSampleStates>3*Sound.nOneSampleStates){
+                    //detekce prekroceni - pri resetu
+                    Sound.nDecrementSampleStates=0;
+                }
+                
+                nStartAudioTStates = clock.getTstates();
+                if (Sound.nDecrementSampleStates <= 0) {
+                    Sound.nDecrementSampleStates += ((Iq) NotifyImpl).audio.getOneSampleState();
+                    ((Iq) NotifyImpl).audio.fillBuffer.putToBuffer();
+                }
+            }
+            
+            
         } // while
+
+        nAudioStatesNextCycleCorrection=clock.getTstates()-statesLimit;
+
     }
 
     private void decodeOpcode(int opCode) {

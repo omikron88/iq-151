@@ -569,7 +569,7 @@ public class Debugger extends javax.swing.JFrame {
 
         jTextAsmCode.setEditable(false);
         jTextAsmCode.setColumns(20);
-        jTextAsmCode.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
+        jTextAsmCode.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
         jTextAsmCode.setRows(6);
         jTextAsmCode.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -578,25 +578,25 @@ public class Debugger extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(jTextAsmCode);
 
-        jTextRegistry.setColumns(20);
         jTextRegistry.setEditable(false);
-        jTextRegistry.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
+        jTextRegistry.setColumns(20);
+        jTextRegistry.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
         jTextRegistry.setRows(5);
         jTextRegistry.setAutoscrolls(false);
         jScrollPane2.setViewportView(jTextRegistry);
 
         jScrollPane3.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        jTextFlags.setColumns(20);
         jTextFlags.setEditable(false);
-        jTextFlags.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
+        jTextFlags.setColumns(20);
+        jTextFlags.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
         jTextFlags.setRows(5);
         jTextFlags.setAutoscrolls(false);
         jScrollPane3.setViewportView(jTextFlags);
 
-        jTextStack.setColumns(20);
         jTextStack.setEditable(false);
-        jTextStack.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
+        jTextStack.setColumns(20);
+        jTextStack.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
         jTextStack.setRows(5);
         jScrollPane4.setViewportView(jTextStack);
 
@@ -608,7 +608,7 @@ public class Debugger extends javax.swing.JFrame {
 
         jTextData.setEditable(false);
         jTextData.setColumns(20);
-        jTextData.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
+        jTextData.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
         jTextData.setRows(5);
         jScrollPane5.setViewportView(jTextData);
 
@@ -678,7 +678,7 @@ public class Debugger extends javax.swing.JFrame {
             }
         });
 
-        jLabelTStates.setFont(new java.awt.Font("Courier New", 1, 12)); // NOI18N
+        jLabelTStates.setFont(new java.awt.Font("DejaVu Sans", 1, 12)); // NOI18N
         jLabelTStates.setText("0");
         jLabelTStates.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -772,28 +772,27 @@ public class Debugger extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jTextBP6, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jLabel1)
-                            .addComponent(jLabelTStates, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jStepButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jStepIntoButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton1))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(10, 10, 10)
-                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addComponent(jTextAdr, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGap(0, 0, Short.MAX_VALUE))))
+                            .addComponent(jLabelTStates, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jStepButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jStepIntoButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jRunButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(10, 10, 10)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jTextAdr, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
