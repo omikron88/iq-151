@@ -167,10 +167,17 @@ public class Iq extends Thread
             sdrom.setLED(lblLed);
             sdrom.start();
         }
-        audio.deinit();
+
+        audio.closeAudio();
         audio.setEnabled(cfg.getAudio());
-        audio.init();
-        cpu.nStartAudioTStates=clk.getTstates();
+        audio.fillBuffer.emptyZeroBit();
+        audio.playBuffer.emptyZeroBit();
+        audio.nSampleReturnedCorrection = 0;
+        cpu.nAudioStatesNextCycleCorrection = 0;
+        cpu.nStartAudioTStates = clk.getTstates();
+        audio.openAudio();
+
+
         mem.Reset(dirty);
         if (zobrgr) {
             Arrays.fill(graf.GVRam, (byte)0);              
@@ -222,8 +229,16 @@ public class Iq extends Thread
         
         paused = false;
 
-        Sound.nDecrementSampleStates=Sound.nOneSampleStates;
-        audio.fillBuffer.lEmptyTime=System.currentTimeMillis()+100;
+        if (audio.isEnabled()) {
+            audio.closeAudio();
+            audio.fillBuffer.emptyZeroBit();
+            audio.playBuffer.emptyZeroBit();            
+            audio.nSampleReturnedCorrection=0;
+            cpu.nAudioStatesNextCycleCorrection=0;
+            cpu.nStartAudioTStates = clk.getTstates();
+            audio.openAudio(); 
+        }
+
         task = new IqTimer(this);
         tim.scheduleAtFixedRate(task, 100, 20);       
        }
@@ -259,7 +274,6 @@ public class Iq extends Thread
         }
         if (!paused) {
             //System.out.println("END 2MHZ Cycle,buffersize=" + audio.fillBuffer.nPosition);
-
             if (!audio.fillBuffer.bState) {
                 //synchronizace zvuku v 20ms intervalech
                 if (audio.fillBuffer.nPosition != 0) { 

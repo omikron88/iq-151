@@ -5,7 +5,6 @@
  */
 package gui;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
@@ -15,7 +14,6 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 /**
  *
@@ -30,7 +28,7 @@ public class About extends JDialog {
     Box b2 = Box.createHorizontalBox();   
     b2.add(new JLabel("IQ151 emulator written in pure Java"));
     Box b3 = Box.createHorizontalBox();
-    b3.add(new JLabel("Build date 17.2.2021"));
+    b3.add(new JLabel("Build date 19.2.2021"));
     b.add(b2, "Center");
     b.add(b3, "Center");
     b.add(Box.createGlue());

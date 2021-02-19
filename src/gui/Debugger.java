@@ -12,19 +12,35 @@ package gui;
 
 import disassemblers.I8080Dis;
 import disassemblers.Z80Dis;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JScrollPane;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 import machine.Iq;
+import utils.JNumberTextField;
 
 
 
@@ -62,9 +78,13 @@ public class Debugger extends javax.swing.JFrame {
     static boolean bZ80=false;
     
     static long nLastClick=0;
-    static long nLastClickAsm=0;
+    static long nLastClickAsm=0;    
     static int nStepPlusAsm=0;
+    static long nLastClickText=0;
     static Point pntPos=new Point(-1,-1);
+    JNumberTextField txtByte = null;
+    Integer nByteAddress = null;
+    Font fntDefaultMonospace = null;
 
     /** Creates new form Debugger */
     public Debugger(Iq inM) {
@@ -79,6 +99,17 @@ public class Debugger extends javax.swing.JFrame {
         jScrollPane5.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         
         jRunButton.setIcon(icoRun);
+        
+        Font fntSelected=selectMonospaceFont();
+        fntDefaultMonospace = new Font(fntSelected.getName(), Font.BOLD, 12);
+        //System.out.println(fntDefaultMonospace.getName());
+        jTextAsmCode.setFont(fntDefaultMonospace);
+        jTextData.setFont(fntDefaultMonospace);
+        jTextRegistry.setFont(fntDefaultMonospace);
+        jTextFlags.setFont(fntDefaultMonospace);
+        jTextStack.setFont(fntDefaultMonospace);
+        jLabelTStates.setFont(fntDefaultMonospace);
+        
         jTextData.addMouseWheelListener(new MouseWheelListener() {
 
             public void mouseWheelMoved(MouseWheelEvent e) {
@@ -366,6 +397,11 @@ public class Debugger extends javax.swing.JFrame {
     }
     
     public void fillDataShow() {
+        if (txtByte != null) {
+            jTextData.remove(txtByte);
+            txtByte = null;
+            nByteAddress = null;
+        }
         if (utils.Config.bShowCode) {
             jRadioCode.setSelected(true);
             jRadioAssembler.setSelected(false);
@@ -481,6 +517,7 @@ public class Debugger extends javax.swing.JFrame {
     }
 
     public void showDialog() {
+        
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         if(pntPos.x<0){        
          setLocation((screen.width - getSize().width) / 2, (screen.height - getSize().height) / 2);
@@ -503,6 +540,37 @@ public class Debugger extends javax.swing.JFrame {
 
     }
 
+    public Font selectMonospaceFont() {
+        String[] arrPreferedFonts = new String[] {"Monospaced","DialogInput", "Courier"};
+        Font fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+        List<Font> monoFonts = new ArrayList<Font>();
+        Font fntSelected=null;
+        FontRenderContext frc = new FontRenderContext(null, RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT, RenderingHints.VALUE_FRACTIONALMETRICS_DEFAULT);
+        for (Font font : fonts) {
+            Rectangle2D iBounds = font.getStringBounds("i", frc);
+            Rectangle2D mBounds = font.getStringBounds("m", frc);
+            if (iBounds.getWidth() == mBounds.getWidth()) {
+                for (String strFntName : arrPreferedFonts) {
+                    if (!font.getName().toUpperCase().contains("ITALIC")) {
+                        if (font.getName().toUpperCase().contains(strFntName.toUpperCase())) {
+                            fntSelected = font;
+                            break;
+                        }
+                    }
+                }
+                monoFonts.add(font);  
+                //System.out.println(font.getName());
+            }
+        }
+        if (fntSelected == null) {
+            //pokud nenajdu preferovany font, vezmu prvni monospace font v seznamu
+            if (monoFonts.size() > 0) {
+                fntSelected = monoFonts.get(0);
+            }
+        }
+        return fntSelected;
+    }
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -569,7 +637,7 @@ public class Debugger extends javax.swing.JFrame {
 
         jTextAsmCode.setEditable(false);
         jTextAsmCode.setColumns(20);
-        jTextAsmCode.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
+        jTextAsmCode.setFont(new java.awt.Font("DialogInput", 1, 12)); // NOI18N
         jTextAsmCode.setRows(6);
         jTextAsmCode.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -580,7 +648,7 @@ public class Debugger extends javax.swing.JFrame {
 
         jTextRegistry.setEditable(false);
         jTextRegistry.setColumns(20);
-        jTextRegistry.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
+        jTextRegistry.setFont(new java.awt.Font("DialogInput", 1, 12)); // NOI18N
         jTextRegistry.setRows(5);
         jTextRegistry.setAutoscrolls(false);
         jScrollPane2.setViewportView(jTextRegistry);
@@ -589,14 +657,14 @@ public class Debugger extends javax.swing.JFrame {
 
         jTextFlags.setEditable(false);
         jTextFlags.setColumns(20);
-        jTextFlags.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
+        jTextFlags.setFont(new java.awt.Font("DialogInput", 1, 12)); // NOI18N
         jTextFlags.setRows(5);
         jTextFlags.setAutoscrolls(false);
         jScrollPane3.setViewportView(jTextFlags);
 
         jTextStack.setEditable(false);
         jTextStack.setColumns(20);
-        jTextStack.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
+        jTextStack.setFont(new java.awt.Font("DialogInput", 1, 12)); // NOI18N
         jTextStack.setRows(5);
         jScrollPane4.setViewportView(jTextStack);
 
@@ -608,8 +676,13 @@ public class Debugger extends javax.swing.JFrame {
 
         jTextData.setEditable(false);
         jTextData.setColumns(20);
-        jTextData.setFont(new java.awt.Font("DejaVu Sans Mono", 1, 12)); // NOI18N
+        jTextData.setFont(new java.awt.Font("DialogInput", 1, 12)); // NOI18N
         jTextData.setRows(5);
+        jTextData.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTextDataMouseClicked(evt);
+            }
+        });
         jScrollPane5.setViewportView(jTextData);
 
         jCheckBP2.addActionListener(new java.awt.event.ActionListener() {
@@ -678,7 +751,7 @@ public class Debugger extends javax.swing.JFrame {
             }
         });
 
-        jLabelTStates.setFont(new java.awt.Font("DejaVu Sans", 1, 12)); // NOI18N
+        jLabelTStates.setFont(new java.awt.Font("DialogInput", 1, 12)); // NOI18N
         jLabelTStates.setText("0");
         jLabelTStates.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -772,7 +845,7 @@ public class Debugger extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jTextBP6, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jLabel1)
-                            .addComponent(jLabelTStates, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)))
+                            .addComponent(jLabelTStates, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jStepButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1182,6 +1255,91 @@ public class Debugger extends javax.swing.JFrame {
         utils.Config.SaveConfig();
         refreshDlg();
     }//GEN-LAST:event_jZ80ActionPerformed
+
+    private void jTextDataMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextDataMouseClicked
+        //po double-click na bajt, zobrazi editacni pole pro zmenu hodnoty bajtu v pameti
+        Date date = new Date();
+        long nNow = date.getTime();
+        long nRozdil = (nNow - nLastClickText);
+        if ((nRozdil > 100) && (nRozdil < 500)) {            
+            if (utils.Config.bShowCode) {
+               // System.out.println("dablklik=" + jTextData.getCaretPosition());
+                boolean bIsInArea = false;
+                int nMemAdr = Integer.valueOf(jTextAdr.getText(), 16);
+                int nTxtPos = jTextData.getCaretPosition();
+                for (int i = 8; i <= 288; i += 43) {
+                    if ((nTxtPos >= i) && (nTxtPos <= (i + 22))) {                        
+                        int nModulo = (nTxtPos - i + 1) % 3;
+                        if (nModulo != 0) {
+                            nByteAddress=nMemAdr+(nTxtPos - i + 1)/3;
+                            if (nByteAddress > 65535) {
+                                nByteAddress =  nByteAddress - 65536;
+                            }
+                            bIsInArea = true;
+                            break;
+                        }
+                    }
+                    nMemAdr+=8;
+                }
+
+                if (bIsInArea) {
+                    jTextData.setSelectionStart(0);
+                    jTextData.setSelectionEnd(0);
+                    fillDataShow();
+                    txtByte = new JNumberTextField() {
+                        @Override
+                        public void processFocusEvent(FocusEvent fe) {
+                            super.processFocusEvent(fe);
+                            setCaretPosition(0);
+                        }
+                    };
+            
+                    txtByte.setMaxNumbers(2);
+                    txtByte.setFont(fntDefaultMonospace);
+                    txtByte.setText(jTextData.getText().substring(nTxtPos - 2, nTxtPos));
+                    txtByte.addFocusListener(new java.awt.event.FocusAdapter() {
+                        public void focusLost(java.awt.event.FocusEvent evt) {
+                            if (txtByte != null) {
+                                if (txtByte.getSaveNeeded()) {
+                                    byte nNewByte = (byte)(Integer.valueOf(txtByte.getText(), 16) & 0xff);
+                                    if (nByteAddress != null) {
+                                        m.mem.writeByte(nByteAddress, nNewByte);
+                                        nByteAddress = null;
+                                    }
+                                }
+                                fillDataShow();
+                            }
+                        }
+                    });
+
+                   
+                    Rectangle2D rectangle=null;
+                    int x1=0;
+                    int x2=0;
+                    int y1=0;
+                    int y2=0;
+                    try {
+                        rectangle = jTextData.modelToView(nTxtPos);
+                        x2=(int)(rectangle.getMinX()+0.5);
+                        rectangle = jTextData.modelToView(nTxtPos-2);
+                        x1=(int)(rectangle.getMinX()-0.5);
+                        y1=(int)(rectangle.getMinY());
+                        y2=(int)(rectangle.getMaxY());
+                                } catch (BadLocationException ex) {
+                    }
+                    if (rectangle != null) {
+                        jTextData.add(txtByte);
+                        txtByte.setSize(x2-x1+12, y2-y1+8);
+                        txtByte.setLocation(x1-6,y1-4);
+                        txtByte.requestFocus();
+                    }
+                }
+            }
+            nLastClickText = 0;
+        } else {
+            nLastClickText = nNow;
+        }
+    }//GEN-LAST:event_jTextDataMouseClicked
 
 
     
