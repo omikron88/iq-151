@@ -43,10 +43,19 @@ public class Iq extends Thread
     private SDRom sdrom;
     private Debugger deb;
     private JIQ151 frame;
-    public Sound audio;
+    public static long nSpeedPercent=0;
+    public int nSpeedPercentUpdateMaxCycles=50;
+    public int nSpeedPercentUpdateDec=nSpeedPercentUpdateMaxCycles;
+    public long nLastSeen=System.currentTimeMillis()-1;
+    public Sound snd;
     public boolean bAutoRunAfterReset=false;
     public int nAutoRunBreakAddress=0;
     public boolean bAutoRunBPointPassed=false;
+    public boolean bResetInProgress=false;
+    
+    public static long lLastOut=0;
+    public static long lTimeHelp=0;
+
     
     int lastchar=0;
 		
@@ -93,9 +102,9 @@ public class Iq extends Thread
         key.setPic(ic);
         graf = new Grafik();
         graf.Init();
-        audio = new Sound();
-        audio.setEnabled(cfg.getAudio());
-        audio.init();        
+        snd = new Sound();
+        snd.setEnabled(cfg.getAudio());
+        snd.init();        
         sdrom=null;
         if(cfg.getSDRom()){
          sdrom = new SDRom(this);
@@ -103,7 +112,7 @@ public class Iq extends Thread
         tap = new Tape(this);
         
         paused = true;
-        Reset(true);
+
     }
     
      public void setDebugger(Debugger indeb){
@@ -159,6 +168,10 @@ public class Iq extends Thread
     }
     
     public final void Reset(boolean dirty) {
+        if(!bResetInProgress){
+        //vice, nez 1 nesmi byt reset spusten
+        bResetInProgress=true;
+        stopEmulation();
         if (cfg.getSDRom()) {
             if (sdrom != null) {
                 sdrom.stopThread();
@@ -167,17 +180,7 @@ public class Iq extends Thread
             sdrom.setLED(lblLed);
             sdrom.start();
         }
-
-        audio.closeAudio();
-        audio.setEnabled(cfg.getAudio());
-        audio.fillBuffer.emptyZeroBit();
-        audio.playBuffer.emptyZeroBit();
-        audio.nSampleReturnedCorrection = 0;
-        cpu.nAudioStatesNextCycleCorrection = 0;
-        cpu.nStartAudioTStates = clk.getTstates();
-        audio.openAudio();
-
-
+        
         mem.Reset(dirty);
         if (zobrgr) {
             Arrays.fill(graf.GVRam, (byte)0);              
@@ -220,6 +223,24 @@ public class Iq extends Thread
             cpu.setBreakpoint(nAutoRunBreakAddress, true);
             bAutoRunAfterReset = true;
         }
+   
+        
+        cpu.nAudioStatesNextCycleCorrection = 0;
+        cpu.nStartAudioTStates = clk.getTstates();
+        if((snd.isEnabled())&&(!cfg.getAudio())){            
+         //musim disablovat audio
+         snd.setEnabled(cfg.getAudio());
+         snd.deinit();
+        }else{
+          if((!snd.isEnabled())&&(cfg.getAudio())){
+            //musim spustit audio
+            snd.setEnabled(cfg.getAudio());
+            snd.init();
+          }  
+        }
+        startEmulation();
+        bResetInProgress=false;
+        }
     }
     
     public synchronized void startEmulation() {
@@ -229,21 +250,11 @@ public class Iq extends Thread
         
         paused = false;
 
-        if (audio.isEnabled()) {
-            audio.closeAudio();
-            audio.fillBuffer.emptyZeroBit();
-            audio.playBuffer.emptyZeroBit();            
-            audio.nSampleReturnedCorrection=0;
-            cpu.nAudioStatesNextCycleCorrection=0;
-            cpu.nStartAudioTStates = clk.getTstates();
-            audio.openAudio(); 
-        }
-
         task = new IqTimer(this);
-        tim.scheduleAtFixedRate(task, 100, 20);       
+        tim.scheduleAtFixedRate(task, 20, 20);
        }
     
-    public synchronized void stopEmulation() {
+    public synchronized void stopEmulation() {        
         frame.setPauseIcon(false);
         if (paused)
             return;
@@ -257,11 +268,33 @@ public class Iq extends Thread
     }
     
     public void ms20() {
+        //aktualizuji rychlost emulace
+        long nNowSeen=System.currentTimeMillis();
+        if((nNowSeen-nLastSeen)>0){
+         nSpeedPercent=nSpeedPercent+(int)(200000/(nNowSeen-nLastSeen));
+        }
+        nLastSeen=nNowSeen;
+        nSpeedPercentUpdateDec--;
+        //je treba zobrazit - prumer z 30 po sobe jdoucich hodnot + 20x predchozi zobrazena hodnota (aby byly zmeny plynulejsi)
+        if(nSpeedPercentUpdateDec<=0){
+         nSpeedPercentUpdateDec=nSpeedPercentUpdateMaxCycles;
+         //zaokrouhleni nahoru
+         nSpeedPercent=((nSpeedPercent/(10*nSpeedPercentUpdateMaxCycles))+7)/10;
+         frame.setTitle("jIQ151 - "+nSpeedPercent+"%");
+         nSpeedPercent=2000*nSpeedPercent;
+         nSpeedPercentUpdateDec-=20;
+        }
+        
         if (paused) 
             return;
         
+        if(snd.isEnabled()){           
+             snd.switchBuffers();
+             snd.setDataReady();
+            }
+        
         ic.assertInt(6);
-
+       
         for (int t = 0; t < 40; t++) {               // half period of 1kHz
             if (!paused) {
                 cpu.execute(clk.getTstates() + 1024); // is 1024 of 2MHz Tstates
@@ -272,19 +305,7 @@ public class Iq extends Thread
             }
 
         }
-        if (!paused) {
-            //System.out.println("END 2MHZ Cycle,buffersize=" + audio.fillBuffer.nPosition);
-            if (!audio.fillBuffer.bState) {
-                //synchronizace zvuku v 20ms intervalech
-                if (audio.fillBuffer.nPosition != 0) { 
-                    audio.fillBuffer.emptyNoBitChange();
-                    audio.nSampleReturnedCorrection=0;
-                    cpu.nAudioStatesNextCycleCorrection=0;
-                }
-
-                audio.fillBuffer.bState = true;
-            }
-        }
+                
 
 // zjisti jestli se má zobrazovat grafika        
         zobrgr=graf.Enabled&&graf.ShowGR&&cfg.grafik;
@@ -339,9 +360,10 @@ public class Iq extends Thread
                  } //for
         }  //video64
 
+
 // a překreslit celou plochu        
         scr.repaint();
-
+        
     }
  
    private void vlozdovram32(int adl,int src,boolean inverl) {
@@ -669,16 +691,16 @@ public class Iq extends Thread
             case 0x86:
                 pio.CpuWrite(pio.PP_PortC, value);
                 //obsluha zvuku
-                if(audio.isEnabled()){
-                 audio.fillBuffer.putToBuffer((value & 0x08)!=0);
+                if(snd.isEnabled()){
+                    snd.fillBuffer.putToBuffer((value & 0x08)!=0);                 
                 }
                 break;
             case 0x87:                
                 //obsluha zvuku v pripade, ze je port C nastavovan pres port CWR                
                 int nCorrected = value & 0x8f;
                 if ((nCorrected == 6) || (nCorrected == 7)) {
-                    if (audio.isEnabled()) {
-                        audio.fillBuffer.putToBuffer((value & 0x01) != 0);
+                    if (snd.isEnabled()) {
+                        snd.fillBuffer.putToBuffer((value & 0x01) != 0);
                     }
                 } else {
                     pio.CpuWrite(pio.PP_CWR, value);

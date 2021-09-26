@@ -2,6 +2,9 @@ package machine;
 
 import java.io.FileOutputStream;
 import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
@@ -14,13 +17,10 @@ import javax.sound.sampled.SourceDataLine;
 public class Sound extends Thread {
     //sample rate vystupniho zvuku   
     static double sampleRate = 96000.0;    
-    //static double sampleRate = 44100.0;
     //velikost bufferu pro 20ms zvuku
     static int BUFFER_SIZE = 1*(int)sampleRate/50;    
-    //velikost bufferu v milisekundach   
-    static int BufferMillisecLength=(int)((double)BUFFER_SIZE/((double)sampleRate/1000));
     //pocet taktu CPU na jeden sampl(jeden zapis) v bufferu
-    public static int nOneSampleStates =(int)((double)(5*40*1024)/(((double)100*BUFFER_SIZE)/(double)BufferMillisecLength));
+    public static int nOneSampleStates =(int)((double)(5*40*1024)/(((double)(sampleRate/10))));
     //pocitadlo taktu
     public static int nDecrementSampleStates = 0;
     
@@ -30,22 +30,31 @@ public class Sound extends Thread {
     public SndBuffer fillBuffer = null;
     //prehravac zvuku
     SourceDataLine audioLine = null;
+    Object objDeinit=new Object();
+    int FULL_BUFFER_SIZE=6*BUFFER_SIZE;
+    
     PlayBuffer playThread = null;
     //indikator, je-li povolen zvuk
     private boolean bEnabled;
     
     public int nSampleReturnedCorrection=0;
+    //udrzuje datovy tok na zukove zarizeni nepreruseny
+    public SoundGuard guard=null;
+    //limit pod ktery nesmi klesnout buffer zvukoveho zarizeni, jinak se zacnou posilat 0
+    public int limit5ms = 2*(int)sampleRate/100;
+    //blok ticha - same 0
+    private byte[] silent = new byte[limit5ms];
+    //indikuje prvni zaslani zvuku z IQ, aby bylo mozno vlozit 10 sec. ticha na zacatek
+    public boolean bFirstFill=true;
+      
     
     //Buffer pro zvukova data
     public class SndBuffer{
         byte[] data = null;
         int nPosition;
-        public long lEmptyTime;
-        private long lFullTime;
         boolean bIsFull;
         boolean bBit;
         int nInTime;
-        int nChanges;
         int dmpcnt;
         public boolean bState=false;
 
@@ -53,18 +62,17 @@ public class Sound extends Thread {
             data = new byte[2 * BUFFER_SIZE];//generuji 16-bitovy wav, proto 2*velikost bufferu
             dmpcnt=0;
             nPosition = 0;
-            lFullTime = 0;
-            lEmptyTime = System.currentTimeMillis();
             bIsFull = false;
             bBit = false;
             nInTime = 0;//zajistuje, aby v jednom casovem useku byl vytvoren pouze 1 sampl
-            nChanges=0;
             bState=false;
         }
         
         //pouze pro debug
         public void dumpBuffer() {
+            
             String strDmpfile = utils.Config.getMyPath() + "dump" + String.valueOf(dmpcnt) + ".txt";
+         //   System.out.println("Dump"+String.valueOf(dmpcnt));
             dmpcnt++;
 
             FileOutputStream fos;
@@ -82,14 +90,13 @@ public class Sound extends Thread {
             boolean bRet = bIsFull; 
             if (nInTime==0) {
              bRet = putToBuffer(bBit);
-                nChanges++;
             }
             nInTime = 0;
             return bRet;
         }
 
         //metoda pro vlozeni zmeny do bufferu pri OUT
-        public boolean putToBuffer(boolean bStatusBit) {
+        public boolean putToBuffer(boolean bStatusBit) {  
             bBit = bStatusBit;
             if (nInTime==0) {
                 if (!bIsFull) {
@@ -102,23 +109,7 @@ public class Sound extends Thread {
                     }                    
                     nPosition += 2;
                     if (nPosition >= 2 * BUFFER_SIZE) {
-                        bIsFull = true;
-                        lFullTime = System.currentTimeMillis();
-
-                        //System.out.println("playthread=" + (lFullTime - lEmptyTime)+",changes="+(nChanges+1)+",bBit="+bBit);
-                        
-                        // dumpBuffer(); 
-                        if(playThread!=null){
-                            try {
-                                playThread.join();
-                                playThread=null;
-                            } catch (InterruptedException ex) {
-                               
-                            }
-                        } 
-                        switchBuffers();
-                        playThread = new PlayBuffer();
-                        playThread.start();
+                        bIsFull = true;                    
                     }
                 }
             }
@@ -131,48 +122,20 @@ public class Sound extends Thread {
             return bIsFull;
         }
         
-        //vyprazdni buffer, bit reproduktoru nastavi na 0
-        public void emptyZeroBit() {
-           emptyNoBitChange();
-           bBit = false; 
-        } 
 
-        //vyprazdni buffer, bit reproduktoru prenese z predaneho bufferu
-        public void emptyTransferBit(SndBuffer bfrLast) {
-            emptyZeroBit();
-            if (bfrLast != null) {
-                bBit = bfrLast.bBit;
-            }
-        }
-        
         //vyprazdni buffer, bit reproduktoru ponecha jak je
-        public void emptyNoBitChange() {
+        public void emptyBuffer() {
             nPosition = 0;
             Arrays.fill(data, (byte) 0);
-            lFullTime = 0;
-            lEmptyTime = System.currentTimeMillis();
             bIsFull = false;
             nInTime = 0;
-            nChanges=0;
         }
     }
 
-    //prehraje Buffer v samostatnem threadu
-    private class PlayBuffer extends Thread {
-        public void run() {
-            if (playBuffer != null) {
-                if (playBuffer.isFull()) {
-                    if (audioLine != null) {
-                        audioLine.write(playBuffer.data, 0, playBuffer.nPosition);
-                    }
-                }
-            }
-        }
-
-    }
 
     public Sound() {
         bEnabled=true;
+        Arrays.fill(silent,(byte)0);       
     }
     
     public void setEnabled(boolean inEnabled){
@@ -184,9 +147,26 @@ public class Sound extends Thread {
         playBuffer = new SndBuffer();
         fillBuffer = new SndBuffer();
         openAudio();
+        if (bEnabled) {
+            startPlaying();
+            //thread, ktery kazde 2 sec. kontroluje, jestli je v bufferu zvuk.zarizeni dost dat
+            Timer tim = new Timer("GuardTimer");
+            guard = new SoundGuard();
+            tim.scheduleAtFixedRate(guard, 1, 2);
+        }
     }
     
-    public void deinit() {
+    public void deinit() { 
+        guard.cancel();
+        guard=null;
+        playThread.setDataReady();
+        playThread.setFinish();
+        try {
+            synchronized(objDeinit){
+             objDeinit.wait();
+            }
+        } catch (InterruptedException ex) {         
+        }
         closeAudio();
         playBuffer = null;
         fillBuffer = null;
@@ -208,7 +188,7 @@ public class Sound extends Thread {
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
             try {
                 audioLine = (SourceDataLine) AudioSystem.getLine(info);
-                audioLine.open(format, BUFFER_SIZE);
+                audioLine.open(format, FULL_BUFFER_SIZE);
                 audioLine.start();
             } catch (Exception ex) {
                 //pocitac nema zvukovou kartu, nebo neumi uvedeny audioformat
@@ -220,14 +200,6 @@ public class Sound extends Thread {
     //ukonci audio prehravac
     public void closeAudio() {
         if (bEnabled) {
-            if (playThread != null) {
-                try {
-                    playThread.join(); //pockam az dohraje zbytek zvuku, pak teprve muzu ukoncit
-                    playThread = null;
-                } catch (InterruptedException ex) {
-
-                }
-            }
             if (audioLine != null) {
                 audioLine.flush();
                 audioLine.drain();
@@ -239,18 +211,33 @@ public class Sound extends Thread {
 
     //vyprazdni playBuffer s prenosem stavu bitu
     //a prohodi oba buffery
-    public void switchBuffers() {
+     public void switchBuffers() {
+         if(bFirstFill){
+             //vlozim 10ms ticha na zacatek, abych mel pak cas pri vypadku provest nejake kroky
+             bFirstFill=false;
+             fillBufferByZero();
+         }
+         //pokud neni buffer vyplnen cely, musim doplnit az do konce, jinak by bylo slyset chrceni
+         if(fillBuffer.nPosition<2*BUFFER_SIZE){             
+          for(int i=fillBuffer.nPosition;i<2*BUFFER_SIZE;i+=2){
+             fillBuffer.putToBuffer();
+          }   
+         } 
+         boolean bBitLoc=fillBuffer.bBit;
+         int nInTimeLoc=fillBuffer.nInTime;
         SndBuffer tmpBuffer=playBuffer;
-        playBuffer.emptyTransferBit(fillBuffer);
+        tmpBuffer.emptyBuffer();
+        tmpBuffer.bBit=bBitLoc;
+        tmpBuffer.nInTime=nInTimeLoc;
         playBuffer=fillBuffer;
-        fillBuffer=tmpBuffer;
-        fillBuffer.bState=false;
+        fillBuffer=tmpBuffer;        
     }
     
-    //vraci pocet taktu pro 1 sampl, kvuli presnosti se hodnota co 3 samply meni, aby se dosahlo
+    
+    //vraci pocet taktu CPU pro 1 sampl, kvuli presnosti se hodnota co 3 samply meni, aby se dosahlo
     //poctu taktu 21.3333333 pomoci integer cisel
     public int getOneSampleState() {
-        int nRet = (int) ((double) (5 * 40 * 1024) / (((double) 100 * BUFFER_SIZE) / (double) BufferMillisecLength));
+        int nRet = nOneSampleStates;       
         nSampleReturnedCorrection++;
         //korekce taktu 21.33333+21.33333+21.33333=21+21+22
         if (nSampleReturnedCorrection >= 3) {
@@ -259,6 +246,84 @@ public class Sound extends Thread {
         }
         return nRet;
     }
+    
+   //dava prehravacimu threadu vedet, ze jsou data v bufferu pripravena pro prenos na zarizeni
+   public void setDataReady() {
+        if (playThread != null) {
+            playThread.setDataReady();
+        }
+    }
+
+    public void startPlaying() {
+        if (audioLine == null) {
+          openAudio();  
+        }
+        //spusteni threadu pro plneni prehravaciho zarizeni
+        playThread = new PlayBuffer();
+        playThread.start();
+    }
+  
+    //posila Buffer na zarizeni v samostatnem threadu
+    private class PlayBuffer extends Thread {
+        private boolean bRunning=true;
+        private CountDownLatch nTransfer = new CountDownLatch(1);
+        
+        public void setDataReady() {
+           nTransfer.countDown();
+        }
+      
+        public void setFinish() {
+           bRunning=false;
+        }
+         
+        public void run() {
+            if (audioLine != null) {
+                while (bRunning) {                  
+                    try {
+                        nTransfer.await();
+                    } catch (InterruptedException ex) {
+                    }
+                     audioLine.write(playBuffer.data, 0, playBuffer.data.length);  
+                    nTransfer=new CountDownLatch(1);
+                }
+                synchronized(objDeinit){
+                    objDeinit.notifyAll();
+                }
+            }
+        }
+    }
+   
+    public void fillBufferByZero() {
+        if (!bFirstFill) {
+            if (audioLine != null) {
+                int nBufferFilled = FULL_BUFFER_SIZE - audioLine.available();
+                if (nBufferFilled <= limit5ms) {
+                    //neco je spatne, v bufferu zvuk.zarizeni je uz jen 5ms dat
+                    //poslu 10ms ticha
+                    audioLine.write(silent, 0, silent.length);
+                    audioLine.write(silent, 0, silent.length);
+                }
+            }
+        }
+    }
+
+    //thread hlidajici nepreruseny tok dat do zvukoveho zarizeni
+    //jinak by v Linuxu bylo slyset chrceni
+    public class SoundGuard extends TimerTask {
+       private long now, diff;
+        @Override
+        public synchronized void run() {           
+            now = System.currentTimeMillis();
+            diff = now - scheduledExecutionTime();
+            if (diff < 2) {
+                try {
+                    Thread.sleep(2 - diff);
+                } catch (InterruptedException ex) {
+                }
+                fillBufferByZero();
+            }
+
+        }
+    }
 
 }
-

@@ -21,7 +21,7 @@ import javax.swing.text.DefaultFormatter;
 public class JNumberTextField extends JFormattedTextField {
     private static final long serialVersionUID = 1L;
     DefaultFormatter format=new DefaultFormatter();
-    int nMaxNumbers=4;
+    int nNumberOfDigits=4;
     boolean bSave=false;
     
     public JNumberTextField() { 
@@ -31,8 +31,8 @@ public class JNumberTextField extends JFormattedTextField {
       super.setFormatter(format); 
     }  
     
-    public void setMaxNumbers(int inNumbers){
-        nMaxNumbers=inNumbers;
+    public void setNumberOfDigits(int inNumbers){
+        nNumberOfDigits=inNumbers;
     }
     
     public boolean getSaveNeeded(){
@@ -81,8 +81,8 @@ public class JNumberTextField extends JFormattedTextField {
                             strPasteDate = strPasteDate.substring(1);
                         }
                         int nPaste=Integer.valueOf(strPasteDate,16);
-                        if((nPaste>=0)&&(nPaste<=(Math.pow(16,nMaxNumbers)))){    
-                         setText(String.format("%0"+nMaxNumbers+"X",nPaste));
+                        if((nPaste>=0)&&(nPaste<=(Math.pow(16,nNumberOfDigits)))){    
+                         setText(String.format("%0"+nNumberOfDigits+"X",nPaste));
                         }
                     } catch (Exception ex) {}                      
                 }
@@ -112,7 +112,7 @@ public class JNumberTextField extends JFormattedTextField {
                     setCaretPosition(nSelStart);
                 }
                 int caretPosition = getCaretPosition();
-                if (caretPosition < nMaxNumbers) {
+                if (caretPosition < nNumberOfDigits) {
                     String text = getText();
                     String strNewText = text.substring(0, caretPosition) + '0' + text.substring(caretPosition+1);
                     setText(strNewText);
@@ -133,9 +133,9 @@ public class JNumberTextField extends JFormattedTextField {
         if(bKeyPressed){
         String text = getText();
         int caretPosition = getCaretPosition();
-        String strNewText=text.substring(0,nMaxNumbers);
+        String strNewText=text.substring(0,nNumberOfDigits);
         setText(strNewText);
-        if(caretPosition>nMaxNumbers) caretPosition=nMaxNumbers;
+        if(caretPosition>nNumberOfDigits) caretPosition=nNumberOfDigits;
         setCaretPosition(caretPosition);
         }
       

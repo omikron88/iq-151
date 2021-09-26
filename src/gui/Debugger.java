@@ -12,17 +12,13 @@ package gui;
 
 import disassemblers.I8080Dis;
 import disassemblers.Z80Dis;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.FocusEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.font.FontRenderContext;
@@ -31,8 +27,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JScrollPane;
 import javax.swing.text.BadLocationException;
@@ -540,7 +534,9 @@ public class Debugger extends javax.swing.JFrame {
 
     }
 
+    //najde nejvhodnejsi monospaced font pro zarovnane zobrazeni dat
     public Font selectMonospaceFont() {
+        //seznam preferovanych fontu
         String[] arrPreferedFonts = new String[] {"Monospaced","DialogInput", "Courier"};
         Font fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
         List<Font> monoFonts = new ArrayList<Font>();
@@ -549,23 +545,31 @@ public class Debugger extends javax.swing.JFrame {
         for (Font font : fonts) {
             Rectangle2D iBounds = font.getStringBounds("i", frc);
             Rectangle2D mBounds = font.getStringBounds("m", frc);
+            //stejna velikost znaku i a m = monospaced
             if (iBounds.getWidth() == mBounds.getWidth()) {
-                for (String strFntName : arrPreferedFonts) {
-                    if (!font.getName().toUpperCase().contains("ITALIC")) {
-                        if (font.getName().toUpperCase().contains(strFntName.toUpperCase())) {
-                            fntSelected = font;
-                            break;
+                //font umi zobrazit znak a, tj. neni symbolovy
+                if (font.canDisplay('a')) {
+                    for (String strFntName : arrPreferedFonts) {
+                        //radeji neskloneny font
+                        if (!font.getName().toUpperCase().contains("ITALIC")) {
+                            if (font.getName().toUpperCase().contains(strFntName.toUpperCase())) {
+                                fntSelected = font;
+                                break;
+                            }
                         }
                     }
+                    //pridam do seznamu kandidatu, kdybych nahodou nenasel zadny preferovany
+                    monoFonts.add(font);
                 }
-                monoFonts.add(font);  
-                //System.out.println(font.getName());
             }
         }
         if (fntSelected == null) {
             //pokud nenajdu preferovany font, vezmu prvni monospace font v seznamu
             if (monoFonts.size() > 0) {
                 fntSelected = monoFonts.get(0);
+            }else{
+               //pokud v seznamu nic neni, necham system at zvoli sam
+               fntSelected= new Font("",Font.BOLD,12);
             }
         }
         return fntSelected;
@@ -1263,7 +1267,6 @@ public class Debugger extends javax.swing.JFrame {
         long nRozdil = (nNow - nLastClickText);
         if ((nRozdil > 100) && (nRozdil < 500)) {            
             if (utils.Config.bShowCode) {
-               // System.out.println("dablklik=" + jTextData.getCaretPosition());
                 boolean bIsInArea = false;
                 int nMemAdr = Integer.valueOf(jTextAdr.getText(), 16);
                 int nTxtPos = jTextData.getCaretPosition();
@@ -1294,7 +1297,7 @@ public class Debugger extends javax.swing.JFrame {
                         }
                     };
             
-                    txtByte.setMaxNumbers(2);
+                    txtByte.setNumberOfDigits(2);
                     txtByte.setFont(fntDefaultMonospace);
                     txtByte.setText(jTextData.getText().substring(nTxtPos - 2, nTxtPos));
                     txtByte.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -1305,6 +1308,8 @@ public class Debugger extends javax.swing.JFrame {
                                     if (nByteAddress != null) {
                                         m.mem.writeByte(nByteAddress, nNewByte);
                                         nByteAddress = null;
+                                        fillAsmCode();
+                                        fillStack();
                                     }
                                 }
                                 fillDataShow();

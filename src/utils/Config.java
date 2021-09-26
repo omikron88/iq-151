@@ -47,6 +47,8 @@ public class Config {
     public static String strSaveBinFilePath="";
     public static int nSaveFromAddress=0;
     public static int nSaveToAddress=0;
+    public static String strShotFilePath="";
+    
     
     //ukladani settings
     public static int mainmodule=2;
@@ -95,6 +97,7 @@ public class Config {
      prop.setProperty("BINSAVEFILEPATH", String.valueOf(strSaveBinFilePath));
      prop.setProperty("BINSAVEADDRESSFROM", String.valueOf(nSaveFromAddress)); 
      prop.setProperty("BINSAVEADDRESSTO", String.valueOf(nSaveToAddress)); 
+     prop.setProperty("SHOTFILEPATH", String.valueOf(strShotFilePath));
      
      prop.setProperty("MAINMODULE", String.valueOf(mainmodule));
      prop.setProperty("GRAFIK", String.valueOf(grafik));
@@ -128,6 +131,13 @@ public class Config {
             nRet = nDefault;
         }
         return nRet;
+    }
+    
+    public static String nullToEmpty(String strIn) {
+        if (strIn == null) {
+            strIn = "";
+        }
+        return strIn;
     }
     
     private static boolean parseBooleanSafe(String strBoolean,boolean bDefault) {
@@ -189,6 +199,7 @@ public class Config {
         audio=parseBooleanSafe(prop.getProperty("AUDIO"),true);
         video64=parseIntSafe(prop.getProperty("VIDEO64"),0);
         mem64=parseBooleanSafe(prop.getProperty("MEM64"),false);
+        strShotFilePath = nullToEmpty(prop.getProperty("SHOTFILEPATH"));
   
     }
 }

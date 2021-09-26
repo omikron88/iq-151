@@ -1,17 +1,23 @@
 package machine;
 
+import disassemblers.Z80Dis;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 
 public class I8085 {
 
-    boolean bStartWrite=false;
+   // boolean bStartWrite=false;
+   // String strAsmfile = utils.Config.getMyPath() + "ASMLog.txt";
+   // PrintWriter f=null;
+  //  Z80Dis disassembler = new Z80Dis();
     public final Clock clock;
     private final MemIoOps MemIoImpl;
     private final NotifyOps NotifyImpl;
     public boolean bMemBP = false;
     private int opCode;
-    int nStartAudioTStates=0;
-    public int nAudioStatesNextCycleCorrection=0;
+    long nStartAudioTStates=0;
+    public long nAudioStatesNextCycleCorrection=0;
 
     private boolean execDone;
 
@@ -79,6 +85,7 @@ public class I8085 {
         execDone = false;
         nStartAudioTStates = clock.getTstates();
         nAudioStatesNextCycleCorrection=0;
+   //     Z80Dis.Opcodes = new int[65536];
         Arrays.fill(breakpointAt, false);
         reset();
     }
@@ -749,12 +756,11 @@ public class I8085 {
         intack = false;
     }
 
-    public final void execute(int statesLimit) {
+    public final void execute(long statesLimit) {
         bMemBP = false;
         Sound.nDecrementSampleStates +=nAudioStatesNextCycleCorrection;
         while (clock.getTstates() < statesLimit) {
-            
-            
+                    
             if (activeTRAP) {
                 activeTRAP = false;
                 trap();
@@ -798,26 +804,26 @@ public class I8085 {
                     break;
                 }
             }
-            /*
-            if (regPC == 0xc800) {
-                //bStartWrite = true;
-            }
+/*
             if (bStartWrite) {
-                String strAsmfile = utils.Config.getMyPath() + "ASMLog.txt";
                 try {
-                    Z80Dis disassembler = new Z80Dis();
-                    Z80Dis.Opcodes = new int[65536];
+                    if(f==null){
+                      f = new PrintWriter(new java.io.OutputStreamWriter(new java.io.FileOutputStream(strAsmfile, true)));  
+                    }
                     for (int i = getRegPC(); i < getRegPC() + 5; i++) {
                         Z80Dis.Opcodes[i] = (0xff) & (byte) MemIoImpl.peek8(i);
-                    }
-                    byte OpcodeLen = disassembler.OpcodeLen(getRegPC());
-                    PrintWriter f = new PrintWriter(new java.io.OutputStreamWriter(new java.io.FileOutputStream(strAsmfile, true)));
+                    }                   
                     f.println(String.format("%04X\t%s", getRegPC(), disassembler.Disassemble(getRegPC())));
-                    f.close();
+                    
                 } catch (FileNotFoundException ex) {
-                }
+                }                
+            }else{
+              if(f!=null){
+                f.close();
+                f=null;
+              }  
             }
-            */
+  */          
             
             opCode = MemIoImpl.fetchOpcode(regPC);
 
@@ -841,23 +847,24 @@ public class I8085 {
 
             intack = false;
             
-            //generovani pravidelnych zvukovych samplu do bufferu            
-            if (((Iq) NotifyImpl).audio.isEnabled()) {
-                Sound.nDecrementSampleStates -= (clock.getTstates() - nStartAudioTStates);
-               
-                if(Sound.nDecrementSampleStates>3*Sound.nOneSampleStates){
-                    //detekce prekroceni - pri resetu
-                    Sound.nDecrementSampleStates=0;
+            //generovani pravidelnych zvukovych samplu do bufferu 
+            if (((Iq) NotifyImpl).snd != null) {
+                if (((Iq) NotifyImpl).snd.isEnabled()) {
+                    Sound.nDecrementSampleStates -= (clock.getTstates() - nStartAudioTStates);
+
+                    if (Sound.nDecrementSampleStates > 3 * Sound.nOneSampleStates) {
+                        //detekce prekroceni - pri resetu
+                        Sound.nDecrementSampleStates = 0;
+                    }
+
+                    nStartAudioTStates = clock.getTstates();
+                    if (Sound.nDecrementSampleStates <= 0) {
+                        Sound.nDecrementSampleStates += ((Iq) NotifyImpl).snd.getOneSampleState();
+                        ((Iq) NotifyImpl).snd.fillBuffer.putToBuffer();
+                    }
                 }
-                
-                nStartAudioTStates = clock.getTstates();
-                if (Sound.nDecrementSampleStates <= 0) {
-                    Sound.nDecrementSampleStates += ((Iq) NotifyImpl).audio.getOneSampleState();
-                    ((Iq) NotifyImpl).audio.fillBuffer.putToBuffer();
-                }
+
             }
-            
-            
         } // while
 
         nAudioStatesNextCycleCorrection=clock.getTstates()-statesLimit;

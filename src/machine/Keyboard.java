@@ -380,7 +380,15 @@ public final class Keyboard implements KeyListener {
             case KeyEvent.VK_ALT_GRAPH: // FB - AltGr
                 fb = false;
                 break;
-              
+/*
+            case KeyEvent.VK_F12: 
+                if(machine.cpu.bStartWrite){
+                 machine.cpu.bStartWrite=false;
+                }else{
+                 machine.cpu.bStartWrite=true;
+                }
+                break;              
+*/  
             case KeyEvent.VK_1:        // 1
                 row[0] |= sb0;
                 break;

@@ -7,7 +7,14 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
@@ -15,6 +22,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import machine.Config;
 import machine.Iq;
 
@@ -42,6 +50,7 @@ public class JIQ151 extends javax.swing.JFrame {
     private BinSave bsav;
     javax.swing.ImageIcon icoRun= new javax.swing.ImageIcon(getClass().getResource("/icons/run.png"));
     javax.swing.ImageIcon icoPause= new javax.swing.ImageIcon(getClass().getResource("/icons/pause.png"));
+
     /**
      * Creates new form JIQ151
      */
@@ -117,6 +126,8 @@ public class JIQ151 extends javax.swing.JFrame {
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        jScreenshot = new javax.swing.JMenuItem();
+        jSeparator7 = new javax.swing.JPopupMenu.Separator();
         mExit = new javax.swing.JMenuItem();
         jMenu8 = new javax.swing.JMenu();
         jMenu9 = new javax.swing.JMenu();
@@ -255,6 +266,15 @@ public class JIQ151 extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem2);
         jMenu1.add(jSeparator1);
+
+        jScreenshot.setText("Save screenshot");
+        jScreenshot.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jScreenshotActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jScreenshot);
+        jMenu1.add(jSeparator7);
 
         mExit.setText("Exit");
         mExit.addActionListener(new java.awt.event.ActionListener() {
@@ -548,6 +568,106 @@ public class JIQ151 extends javax.swing.JFrame {
     private void jSaveMemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSaveMemActionPerformed
        jSaveMemoryBlockActionPerformed(null);
     }//GEN-LAST:event_jSaveMemActionPerformed
+  
+    public String getExtension(String fileName) {
+        String extension = "";
+        if (fileName != null) {
+            int i = fileName.lastIndexOf('.');
+            if (i > 0) {
+                extension = fileName.substring(i + 1);
+            }
+        }
+        return extension;
+    }
+    
+        public String removeExtension(String fileName) {
+        String strNewFileName = "";
+        String strTemp;
+        if (fileName != null) {
+            int i = fileName.lastIndexOf(File.separator);
+            if (i > 0) {
+                strNewFileName = fileName.substring(0, i+1);
+                strTemp = fileName.substring(i + 1);
+
+            } else {
+                strNewFileName = "";
+                strTemp = fileName;
+            }
+            i = strTemp.lastIndexOf('.');
+            if (i > 0) {
+                strTemp = strTemp.substring(0, i);
+            }
+            strNewFileName += strTemp;
+        }
+        return strNewFileName;
+    }
+    
+    
+    //vlozi do jmena souboru index pokud tam neni, pote vrati dalsi jmeno v poradi indexu
+    private String getNextFileName(String strCurrentFileName, String strDefault) {
+        String strRet = strDefault;
+        String strShort=new File(strCurrentFileName).getName();
+        String strExtension=getExtension(strShort);
+        if(!strExtension.isEmpty()){
+            strExtension="."+strExtension;
+        }
+        if (!strShort.isEmpty()) {
+            String strTmpNoExt = strShort;
+            if(!getExtension(strShort).isEmpty()){
+             strTmpNoExt = strShort.substring(0, strShort.lastIndexOf('.'));
+            }
+            Pattern pattern = Pattern.compile("^(.*\\D)(\\d+)$");
+            Matcher matcher = pattern.matcher(strTmpNoExt);
+            if (matcher.find()) { 
+                int nFmt=matcher.group(2).length();
+                int nNewVal=Integer.parseInt(matcher.group(2))+1;                
+                strRet=matcher.group(1)+String.format("%0"+nFmt+"d", nNewVal)+strExtension;
+            }else{
+                strRet=strTmpNoExt+"01"+strExtension;
+            }
+        }
+        return strRet;
+    }  
+    
+    private void jScreenshotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jScreenshotActionPerformed
+
+        BufferedImage shot = m.getImage();
+        boolean pau = m.isPaused();
+        m.stopEmulation();
+
+        fc.setDialogTitle("Save screenshot");
+        utils.Config.LoadConfig();         
+        fc.setCurrentDirectory(new File(utils.Config.nullToEmpty(new File(utils.Config.strShotFilePath).getParent())));        
+        String strNewFileName=utils.Config.strShotFilePath;
+        fc.setSelectedFile(new File(removeExtension(getNextFileName(strNewFileName,"screen01"))));
+        fc.resetChoosableFileFilters();
+        fc.setAcceptAllFileFilterUsed(true);
+        fc.setFileFilter(new FileNameExtensionFilter("IQ151 screenshots", "png"));
+        int val = fc.showSaveDialog(this);
+
+        if (val == JFileChooser.APPROVE_OPTION) {
+            try {
+                String strSnap = fc.getSelectedFile().getCanonicalPath();
+                if (!getExtension(strSnap).equalsIgnoreCase("png")) {
+                    strSnap += ".png";
+                }
+                File outputfile = new File(strSnap);
+                try {
+                    ImageIO.write(shot, "png", outputfile);
+                } catch (IOException ex) {
+                    Logger.getLogger(JIQ151.class.getName()).log(Level.SEVERE, null, ex);
+                } 
+                utils.Config.strShotFilePath = strSnap;
+                utils.Config.SaveConfig();
+            } catch (IOException ex) {
+                Logger.getLogger(JIQ151.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        if (!pau) {
+            m.startEmulation();
+        }
+    }//GEN-LAST:event_jScreenshotActionPerformed
 
     private void initEmulator() {
         m = new Iq();
@@ -557,11 +677,12 @@ public class JIQ151 extends javax.swing.JFrame {
         deb=new Debugger(m);        
         bopn=new BinOpen(m);
         bsav=new BinSave(m);
-        m.setDebugger(deb);  
+        m.setDebugger(deb); 
         m.setFrame(this);
         getContentPane().add(scr, BorderLayout.LINE_START);
         pack();         
         addKeyListener(m.getKeyboard());
+        m.Reset(true);
         m.start();
         
     }
@@ -626,12 +747,14 @@ public class JIQ151 extends javax.swing.JFrame {
     private javax.swing.JButton jPause;
     private javax.swing.JButton jResetIco;
     private javax.swing.JButton jSaveMem;
+    private javax.swing.JMenuItem jScreenshot;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JPopupMenu.Separator jSeparator5;
     private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JPopupMenu.Separator jSeparator7;
     private javax.swing.JButton jSettings;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JMenuItem mExit;

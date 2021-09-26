@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * @author jsanchez
  */
 public class Clock {
-    private int tstates;
+    private long tstates;
     private int timeout;
     private final ArrayList<ClockTimeoutListener> clockListeners = new ArrayList<ClockTimeoutListener>();
 
@@ -59,7 +59,7 @@ public class Clock {
     /**
      * @return the tstates
      */
-    public int getTstates() {
+    public long getTstates() {
         return tstates;
     }
 
