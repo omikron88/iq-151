@@ -28,6 +28,7 @@ public final class Memory {
     private byte[][] Pascal = new byte[16][PAGE_SIZE];
     private byte[][] Pascal1 = new byte[16][PAGE_SIZE];
     private byte[][] Assembler = new byte[16][PAGE_SIZE];
+    private byte[][] Disc2 = new byte[2][PAGE_SIZE];
 
     private byte[][] readPages = new byte[64][];
     private byte[][] writePages = new byte[64][];
@@ -209,6 +210,13 @@ public final class Memory {
             
     }
     
+    public void mountDisc2() {
+        readPages[57] = Disc2[1];
+        writePages[57] = fakeROM;
+        readPages[56] = Disc2[0];
+        writePages[56] = fakeROM;
+    }
+    
     public void SwitchAmos(int hodn) {
         if (hodn == 0) {
             readPages[47] = Pascal[15];
@@ -387,7 +395,9 @@ public final class Memory {
         }
         if (!loadRomAsFile(romsDirectory + cf.getPascal1Rom(), Pascal1, 0, PAGE_SIZE * 16)) {
             loadRomAsResource("/roms/Pascal1.rom", Pascal1, 0, PAGE_SIZE * 16);
-        }
+        }        
+        loadRomAsResource("/roms/Disc2.rom", Disc2, 0, PAGE_SIZE * 2);
+        
     }
 
     private boolean loadRomAsResource(String filename, byte[][] rom, int page, int size) {

@@ -5,22 +5,34 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Image;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import machine.Config;
@@ -50,7 +62,10 @@ public class JIQ151 extends javax.swing.JFrame {
     private BinSave bsav;
     javax.swing.ImageIcon icoRun= new javax.swing.ImageIcon(getClass().getResource("/icons/run.png"));
     javax.swing.ImageIcon icoPause= new javax.swing.ImageIcon(getClass().getResource("/icons/pause.png"));
+    javax.swing.ImageIcon icoFloppyRO= new javax.swing.ImageIcon(getClass().getResource("/icons/floppy.png"));
+    javax.swing.ImageIcon icoFloppyRW= new javax.swing.ImageIcon(getClass().getResource("/icons/floppyrw.png"));
 
+    
     /**
      * Creates new form JIQ151
      */
@@ -58,45 +73,141 @@ public class JIQ151 extends javax.swing.JFrame {
         initComponents();
         setIconImage((new ImageIcon(getClass().getResource("/icons/iq.png")).getImage()));
         //presun polozky menu About doprava
-        jMenuBar1.remove(jMenu7);
+        jMenuBar1.remove(jAbout);
         jMenuBar1.add(Box.createHorizontalGlue());
-        jMenuBar1.add(jMenu7);        
-        jToolBar1.setBackground(new Color(240,240,240));
-        getContentPane().setBackground(new Color(240,240,240));
-        //getContentPane().setBackground(Color.black);
+        jMenuBar1.add(jAbout);        
+        statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.LINE_AXIS));
         initEmulator();
-        pack();
+
+        
+        lblLed = new JLabel("");
+        lblLed.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/gray.png")));
+        m.setSDRomLED(lblLed);         
+        statusPanel.add(Box.createHorizontalGlue());
+        statusPanel.add(lblLed);
+        statusPanel.add(Box.createRigidArea(new Dimension(4,0)));
+        
+        jCheckBoxSpeed05.setSelected(false);
+        jCheckBoxspeed1.setSelected(true);
+        jCheckBoxSpeed2.setSelected(false);
+        jCheckBoxSpeed3.setSelected(false);
+        m.setSpeed(20);
+        
         if(utils.Config.sdrom){
             addLEDbar();
         }else{
             removeLEDbar();
-        }
+        } 
+        floppyUpdate();
+        if(utils.Config.bDisc2){
+            floppyON();
+        }else{
+            floppyOFF();
+        }        
     }
 
     private void addLEDbar() {
-        if (ledPanel == null) {
-            lblLed = new JLabel("");
-            lblLed.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/gray.png")));
-            m.setSDRomLED(lblLed);
-            JPanel bottomPanel = new JPanel(new BorderLayout());
-            bottomPanel.setBackground(new Color(240,240,240));
-            bottomPanel.add(lblLed, BorderLayout.LINE_END);
-            ledPanel = new JPanel(new BorderLayout());
-            ledPanel.setBackground(new Color(240,240,240));
-            ledPanel.add(bottomPanel, BorderLayout.PAGE_END);
-            this.getContentPane().add(ledPanel,BorderLayout.PAGE_END);             
-        }        
-        setSize(566, scr.getPreferredSize().height+lblLed.getPreferredSize().height+jToolBar1.getPreferredSize().height);
-        scr.repaint();
+        lblLed.setVisible(true);
     }
     
     private void removeLEDbar(){
-        if(ledPanel!=null){
-            this.getContentPane().remove(ledPanel);
-            ledPanel=null;
-        }
-        setSize(566, scr.getPreferredSize().height+jToolBar1.getPreferredSize().height);
+       lblLed.setVisible(false);
     }
+    
+    private void floppyON() {
+        jFloppyButton1.setVisible(true);
+        jFloppy1.setVisible(true);
+        jFloppyButton2.setVisible(true);
+        jFloppy2.setVisible(true);
+    }
+
+    private void floppyOFF() {
+        jFloppyButton1.setVisible(false);
+        jFloppy1.setVisible(false);
+        jFloppyButton2.setVisible(false);
+        jFloppy2.setVisible(false);
+    }
+    
+
+    private void floppyUpdate() {
+         jFloppyButton1.setIcon(icoFloppyRO);
+         jFloppyButton2.setIcon(icoFloppyRO);
+         Arrays.fill(m.floppyA.dimage,(byte)0);
+         Arrays.fill(m.floppyB.dimage,(byte)0);
+         jFloppy1.setText("Empty");
+         jFloppy1.setToolTipText("Empty");
+         jFloppy2.setText("Empty");
+         jFloppy2.setToolTipText("Empty");         
+        if (utils.Config.strFlop1FilePath.isEmpty()) {
+            utils.Config.bFlop1Inserted=false;
+        } else { 
+           if(utils.Config.bFlop1Inserted){
+            try {
+                InputStream is;
+                is = new DataInputStream(new FileInputStream(utils.Config.strFlop1FilePath));
+                    try {
+                        if (is.available() != 256256) {                              
+                            JOptionPane.showMessageDialog(null, "Invalid size of floppy image "+new File(utils.Config.strFlop1FilePath).getName()+"\nThe allowed size is 256256 bytes", "Error", JOptionPane.ERROR_MESSAGE);
+                            jFloppy1.setText("Empty");
+                            jFloppy1.setToolTipText("Empty");                            
+                            utils.Config.bFlop1Inserted=false;
+                            Arrays.fill(m.floppyA.dimage,(byte)0);
+                        } else {
+                            jFloppy1.setText(utils.Config.strFlop1FilePath);
+                            jFloppy1.setToolTipText(utils.Config.strFlop1FilePath);                            
+                            if(utils.Config.bFlop1RW){
+                                jFloppyButton1.setIcon(icoFloppyRW);
+                            }
+                            is.read(m.floppyA.dimage);
+                            is.close();
+                            utils.Config.bFlop1Inserted=true;
+                        }
+                    } catch (IOException ex) {
+                    }
+                
+            } catch (FileNotFoundException ex) {
+
+            }
+           }
+        }
+        if (utils.Config.strFlop2FilePath.isEmpty()) {
+            utils.Config.bFlop2Inserted=false;
+        } else {
+            if(utils.Config.bFlop2Inserted){
+            try {
+                InputStream is;
+                is = new DataInputStream(new FileInputStream(utils.Config.strFlop2FilePath));
+                    try {
+                        if (is.available() != 256256) {
+                            JOptionPane.showMessageDialog(null, "Invalid size of floppy image "+new File(utils.Config.strFlop2FilePath).getName()+"\nThe allowed size is 256256 bytes", "Error", JOptionPane.ERROR_MESSAGE);
+                            jFloppy2.setText("Empty");
+                            jFloppy2.setToolTipText("Empty");
+                            utils.Config.bFlop2Inserted=false;
+                            Arrays.fill(m.floppyB.dimage,(byte)0);                            
+                        } else {
+                            jFloppy2.setText(utils.Config.strFlop2FilePath);
+                            jFloppy2.setToolTipText(utils.Config.strFlop2FilePath);
+                            if(utils.Config.bFlop2RW){
+                                jFloppyButton2.setIcon(icoFloppyRW);
+                            }
+                            is.read(m.floppyB.dimage);
+                            is.close();   
+                            utils.Config.bFlop2Inserted=true;
+                        }
+                    } catch (IOException ex) {
+                    }
+                
+            } catch (FileNotFoundException ex) {
+
+            }
+           }
+        }
+        if(m.floppyCtrl!=null){
+            m.floppyCtrl.I8272reset();
+        }
+        utils.Config.SaveConfig();
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -118,6 +229,11 @@ public class JIQ151 extends javax.swing.JFrame {
         jDebugger = new javax.swing.JButton();
         jSeparator6 = new javax.swing.JToolBar.Separator();
         jSettings = new javax.swing.JButton();
+        statusPanel = new javax.swing.JPanel();
+        jFloppyButton1 = new javax.swing.JButton();
+        jFloppy1 = new javax.swing.JLabel();
+        jFloppyButton2 = new javax.swing.JButton();
+        jFloppy2 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         mLoad = new javax.swing.JMenuItem();
@@ -137,14 +253,20 @@ public class JIQ151 extends javax.swing.JFrame {
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        jCheckBoxSpeed05 = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxspeed1 = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxSpeed2 = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxSpeed3 = new javax.swing.JCheckBoxMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItem4 = new javax.swing.JMenuItem();
         jSeparator5 = new javax.swing.JPopupMenu.Separator();
         mSettings = new javax.swing.JMenuItem();
-        jMenu7 = new javax.swing.JMenu();
+        jAbout = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("jIQ151");
+        setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
@@ -152,6 +274,7 @@ public class JIQ151 extends javax.swing.JFrame {
         });
 
         jToolBar1.setRollover(true);
+        jToolBar1.setPreferredSize(new java.awt.Dimension(100, 20));
 
         jResetIco.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/reset.png"))); // NOI18N
         jResetIco.setToolTipText("Reset");
@@ -228,6 +351,49 @@ public class JIQ151 extends javax.swing.JFrame {
         jToolBar1.add(jSettings);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
+
+        statusPanel.setMaximumSize(new java.awt.Dimension(100, 32767));
+        statusPanel.setMinimumSize(new java.awt.Dimension(100, 20));
+        statusPanel.setPreferredSize(new java.awt.Dimension(100, 22));
+
+        jFloppyButton1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jFloppyButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/floppy.png"))); // NOI18N
+        jFloppyButton1.setText("0");
+        jFloppyButton1.setToolTipText("Floppy Drive A");
+        jFloppyButton1.setBorderPainted(false);
+        jFloppyButton1.setFocusable(false);
+        jFloppyButton1.setIconTextGap(1);
+        jFloppyButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jFloppyButton1ActionPerformed(evt);
+            }
+        });
+        statusPanel.add(jFloppyButton1);
+
+        jFloppy1.setFont(new java.awt.Font("Tahoma", 0, 9)); // NOI18N
+        jFloppy1.setText("Empty");
+        jFloppy1.setPreferredSize(new java.awt.Dimension(200, 14));
+        statusPanel.add(jFloppy1);
+
+        jFloppyButton2.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jFloppyButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/floppy.png"))); // NOI18N
+        jFloppyButton2.setText("1");
+        jFloppyButton2.setToolTipText("Floppy Drive B");
+        jFloppyButton2.setFocusable(false);
+        jFloppyButton2.setIconTextGap(1);
+        jFloppyButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jFloppyButton2ActionPerformed(evt);
+            }
+        });
+        statusPanel.add(jFloppyButton2);
+
+        jFloppy2.setFont(new java.awt.Font("Tahoma", 0, 9)); // NOI18N
+        jFloppy2.setText("Empty");
+        jFloppy2.setPreferredSize(new java.awt.Dimension(200, 14));
+        statusPanel.add(jFloppy2);
+
+        getContentPane().add(statusPanel, java.awt.BorderLayout.PAGE_END);
 
         jMenuBar1.setMaximumSize(new java.awt.Dimension(282, 500));
 
@@ -341,11 +507,50 @@ public class JIQ151 extends javax.swing.JFrame {
         });
         jMenu8.add(jMenuItem3);
 
+        jMenu3.setText("Speed");
+
+        jCheckBoxSpeed05.setSelected(true);
+        jCheckBoxSpeed05.setText("0,5x");
+        jCheckBoxSpeed05.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSpeed05ActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxSpeed05);
+
+        jCheckBoxspeed1.setSelected(true);
+        jCheckBoxspeed1.setText("1x");
+        jCheckBoxspeed1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxspeed1ActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxspeed1);
+
+        jCheckBoxSpeed2.setSelected(true);
+        jCheckBoxSpeed2.setText("2x");
+        jCheckBoxSpeed2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSpeed2ActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxSpeed2);
+
+        jCheckBoxSpeed3.setSelected(true);
+        jCheckBoxSpeed3.setText("4x");
+        jCheckBoxSpeed3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSpeed3ActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxSpeed3);
+
+        jMenu8.add(jMenu3);
+
         jMenuBar1.add(jMenu8);
 
         jMenu2.setText("Tools");
 
-        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem4.setText("Debugger");
         jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -355,7 +560,6 @@ public class JIQ151 extends javax.swing.JFrame {
         jMenu2.add(jMenuItem4);
         jMenu2.add(jSeparator5);
 
-        mSettings.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
         mSettings.setText("Settings");
         mSettings.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -366,13 +570,13 @@ public class JIQ151 extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu2);
 
-        jMenu7.setText("About");
-        jMenu7.addMouseListener(new java.awt.event.MouseAdapter() {
+        jAbout.setText("About");
+        jAbout.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 jAboutClicked(evt);
             }
         });
-        jMenuBar1.add(jMenu7);
+        jMenuBar1.add(jAbout);
 
         setJMenuBar(jMenuBar1);
 
@@ -450,7 +654,7 @@ public class JIQ151 extends javax.swing.JFrame {
         m.stopEmulation();
         
         Settings set = new Settings();
-        set.setSize(388, 488);
+        set.setSize(new Dimension(455, 470));
         set.setLocationRelativeTo(this);
         set.showDialog(m.getConfig());
         if (set.isResetNeeded()) {
@@ -462,8 +666,12 @@ public class JIQ151 extends javax.swing.JFrame {
         utils.Config.monitor=cfg.getMonitor();
         utils.Config.grafik=cfg.getGrafik();
         utils.Config.sdrom=cfg.getSDRom();     
-        utils.Config.sdromautorun=cfg.getSDRomAutorun();     
+        utils.Config.sdromautorun=cfg.getSDRomAutorun();
+        utils.Config.felautorun=cfg.getFelAutorun();
+        utils.Config.amosautorun=cfg.getAmosAutorun();        
         utils.Config.audio=cfg.getAudio();
+        utils.Config.bDisc2=cfg.getDisc2();
+        utils.Config.smartkeyboard=cfg.getSmartKbd();
               
         utils.Config.mem64=cfg.getMem64();
         utils.Config.video64=cfg.getVideo();
@@ -475,6 +683,11 @@ public class JIQ151 extends javax.swing.JFrame {
         } else {
             removeLEDbar();
         }
+        if(cfg.disc2){
+            floppyON();
+        }else{
+            floppyOFF();
+        } 
         if (!pau) {
             
             m.startEmulation();
@@ -527,6 +740,7 @@ public class JIQ151 extends javax.swing.JFrame {
             
             m.startEmulation();
         }
+        floppyUpdate();
         m.Reset(true);
         m.clearScreen();
     }//GEN-LAST:event_jResetActionPerformed
@@ -580,7 +794,7 @@ public class JIQ151 extends javax.swing.JFrame {
         return extension;
     }
     
-        public String removeExtension(String fileName) {
+    public String removeExtension(String fileName) {
         String strNewFileName = "";
         String strTemp;
         if (fileName != null) {
@@ -669,6 +883,123 @@ public class JIQ151 extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jScreenshotActionPerformed
 
+    private void jFloppyButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFloppyButton1ActionPerformed
+        
+        final JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Open floppy image");
+        fc.resetChoosableFileFilters();
+        fc.setCurrentDirectory(new File(utils.Config.strFlop1FilePath));
+        fc.setAcceptAllFileFilterUsed(true);
+        JPanel panel1 = (JPanel)fc.getComponent(3);
+        JPanel panel2 = (JPanel) panel1.getComponent(3);
+        JButton btnEmpty=new JButton("Eject disk");
+        btnEmpty.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent action) {                
+               fc.cancelSelection();               
+               utils.Config.bFlop1Inserted=false;
+               utils.Config.SaveConfig();
+               floppyUpdate();
+            }
+        });
+        JCheckBox chckWrites=new JCheckBox("R/W mode");
+        Component c1=panel2.getComponent(0);
+        Component c2=panel2.getComponent(1);
+        panel2.removeAll();
+        
+        panel2.add(chckWrites);
+        panel2.add(c1);
+        panel2.add(btnEmpty);
+        panel2.add(c2);
+        int val = fc.showOpenDialog(this);
+        
+        if (val==JFileChooser.APPROVE_OPTION) {
+            try {
+                utils.Config.strFlop1FilePath=fc.getSelectedFile().getCanonicalPath();
+                utils.Config.bFlop1RW=chckWrites.isSelected();
+                utils.Config.bFlop1Inserted=true;
+                utils.Config.SaveConfig();                 
+                floppyUpdate();
+            } catch (IOException ex) {
+               
+            }
+        }       
+    }//GEN-LAST:event_jFloppyButton1ActionPerformed
+
+    private void jFloppyButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFloppyButton2ActionPerformed
+        final JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Open floppy image");
+        fc.resetChoosableFileFilters();
+        fc.setCurrentDirectory(new File(utils.Config.strFlop2FilePath));
+        fc.setAcceptAllFileFilterUsed(true);
+        JPanel panel1 = (JPanel)fc.getComponent(3);
+        JPanel panel2 = (JPanel) panel1.getComponent(3);
+        JButton btnEmpty=new JButton("Eject disk");
+         btnEmpty.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent action) {                
+               fc.cancelSelection();               
+               utils.Config.bFlop2Inserted=false;
+               utils.Config.SaveConfig(); 
+               floppyUpdate();
+            }
+        });
+        JCheckBox chckWrites=new JCheckBox("R/W mode");
+        Component c1=panel2.getComponent(0);
+        Component c2=panel2.getComponent(1);
+        panel2.removeAll();
+        
+        panel2.add(chckWrites);
+        panel2.add(c1);
+        panel2.add(btnEmpty);
+        panel2.add(c2);
+        int val = fc.showOpenDialog(this);
+        
+        if (val==JFileChooser.APPROVE_OPTION) {
+            try {
+                utils.Config.strFlop2FilePath=fc.getSelectedFile().getCanonicalPath();
+                utils.Config.bFlop2RW=chckWrites.isSelected();
+                utils.Config.bFlop2Inserted=true;
+                utils.Config.SaveConfig(); 
+                floppyUpdate();
+            } catch (IOException ex) {
+               
+            }
+        }
+    }//GEN-LAST:event_jFloppyButton2ActionPerformed
+
+    private void jCheckBoxSpeed05ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed05ActionPerformed
+        jCheckBoxSpeed05.setSelected(true);
+        jCheckBoxspeed1.setSelected(false);
+        jCheckBoxSpeed2.setSelected(false);
+        jCheckBoxSpeed3.setSelected(false);
+        m.setSpeed(40);
+    }//GEN-LAST:event_jCheckBoxSpeed05ActionPerformed
+
+    private void jCheckBoxspeed1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxspeed1ActionPerformed
+        jCheckBoxSpeed05.setSelected(false);
+        jCheckBoxspeed1.setSelected(true);
+        jCheckBoxSpeed2.setSelected(false);
+        jCheckBoxSpeed3.setSelected(false);
+        m.setSpeed(20);
+    }//GEN-LAST:event_jCheckBoxspeed1ActionPerformed
+
+    private void jCheckBoxSpeed2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed2ActionPerformed
+        jCheckBoxSpeed05.setSelected(false);
+        jCheckBoxspeed1.setSelected(false);
+        jCheckBoxSpeed2.setSelected(true);
+        jCheckBoxSpeed3.setSelected(false);
+        m.setSpeed(10);
+    }//GEN-LAST:event_jCheckBoxSpeed2ActionPerformed
+
+    private void jCheckBoxSpeed3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed3ActionPerformed
+        jCheckBoxSpeed05.setSelected(false);
+        jCheckBoxspeed1.setSelected(false);
+        jCheckBoxSpeed2.setSelected(false);
+        jCheckBoxSpeed3.setSelected(true);
+        m.setSpeed(5);
+    }//GEN-LAST:event_jCheckBoxSpeed3ActionPerformed
+
     private void initEmulator() {
         m = new Iq();
         scr = new JIQScreen();       
@@ -679,8 +1010,10 @@ public class JIQ151 extends javax.swing.JFrame {
         bsav=new BinSave(m);
         m.setDebugger(deb); 
         m.setFrame(this);
-        getContentPane().add(scr, BorderLayout.LINE_START);
-        pack();         
+        getContentPane().add(scr, BorderLayout.CENTER);
+        pack();
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        setLocation((screen.width-getSize().width)/2, (screen.height-getSize().height)/2);
         addKeyListener(m.getKeyboard());
         m.Reset(true);
         m.start();
@@ -731,11 +1064,20 @@ public class JIQ151 extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JFileChooser fc;
+    private javax.swing.JMenu jAbout;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxSpeed05;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxSpeed2;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxSpeed3;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxspeed1;
     private javax.swing.JButton jDebugger;
+    private javax.swing.JLabel jFloppy1;
+    private javax.swing.JLabel jFloppy2;
+    private javax.swing.JButton jFloppyButton1;
+    private javax.swing.JButton jFloppyButton2;
     private javax.swing.JButton jLoadMem;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenu jMenu7;
+    private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu8;
     private javax.swing.JMenu jMenu9;
     private javax.swing.JMenuBar jMenuBar1;
@@ -764,6 +1106,7 @@ public class JIQ151 extends javax.swing.JFrame {
     private javax.swing.JRadioButtonMenuItem mRecord;
     private javax.swing.JMenuItem mSave;
     private javax.swing.JMenuItem mSettings;
+    private javax.swing.JPanel statusPanel;
     // End of variables declaration//GEN-END:variables
 
 }

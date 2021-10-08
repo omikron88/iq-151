@@ -41,6 +41,7 @@ public class Iq extends Thread
     private Tape tap;
     private Grafik graf;
     private SDRom sdrom;
+    public Io8272 floppyCtrl;
     private Debugger deb;
     private JIQ151 frame;
     public static long nSpeedPercent=0;
@@ -48,9 +49,7 @@ public class Iq extends Thread
     public int nSpeedPercentUpdateDec=nSpeedPercentUpdateMaxCycles;
     public long nLastSeen=System.currentTimeMillis()-1;
     public Sound snd;
-    public boolean bAutoRunAfterReset=false;
     public int nAutoRunBreakAddress=0;
-    public boolean bAutoRunBPointPassed=false;
     public boolean bResetInProgress=false;
     
     public static long lLastOut=0;
@@ -73,21 +72,30 @@ public class Iq extends Thread
     private final int[] dstg = new int[1024];
     private final int[] dstg64 = new int[2048];
     public JLabel lblLed=null;
+    public FloppyData floppyA=new FloppyData();
+    public FloppyData floppyB=new FloppyData();
     
     public boolean bSav=false;
+    public boolean bAutoRunAfterReset;
+    
+    int nSpeed=20;
     
     public Iq() {                
-        img = new BufferedImage(sirka, vyska, BufferedImage.TYPE_INT_RGB);
+        img = new BufferedImage(sirka, vyska, BufferedImage.TYPE_BYTE_BINARY);
         cfg = new Config();
         utils.Config.LoadConfig();
         cfg.setMain((byte)utils.Config.mainmodule);
         cfg.setGrafik(utils.Config.grafik);
         cfg.setSDRom(utils.Config.sdrom);
         cfg.setSDRomAutorun(utils.Config.sdromautorun);
+        cfg.setFelAutorun(utils.Config.felautorun);
+        cfg.setAmosAutorun(utils.Config.amosautorun);
         cfg.setMem64(utils.Config.mem64);
         cfg.setVideo((byte)utils.Config.video64);
         cfg.setMonitor((byte)utils.Config.monitor);
         cfg.setAudio(utils.Config.audio);
+        cfg.setDisc2(utils.Config.bDisc2);
+        cfg.setSmartKbd(utils.Config.smartkeyboard);
         mem = new Memory(cfg);
         chars = mem.getChars();
         vm = mem.getVRam();
@@ -108,6 +116,12 @@ public class Iq extends Thread
         sdrom=null;
         if(cfg.getSDRom()){
          sdrom = new SDRom(this);
+        }        
+        if (cfg.disc2) {
+            floppyCtrl = new Io8272(this);
+            floppyCtrl.I8272reset();
+        } else {
+            floppyCtrl = null;
         }
         tap = new Tape(this);
         
@@ -122,6 +136,12 @@ public class Iq extends Thread
      public void setFrame(JIQ151 inJIQ){
         frame=inJIQ;
     }
+     
+    public void setSpeed(int inSpeed){
+     nSpeed=inSpeed;
+     stopEmulation();
+     startEmulation();
+    }
     
     public Debugger getDebugger(){
         return deb;
@@ -133,7 +153,9 @@ public class Iq extends Thread
 
     public void setSDRomLED(JLabel inLed){
         lblLed=inLed;
-        sdrom.setLED(lblLed);
+        if(sdrom!=null){
+         sdrom.setLED(lblLed);
+        }
     }
     
     public void setConfig(Config c) {
@@ -168,41 +190,49 @@ public class Iq extends Thread
     }
     
     public final void Reset(boolean dirty) {
-        if(!bResetInProgress){
-        //vice, nez 1 nesmi byt reset spusten
-        bResetInProgress=true;
-        stopEmulation();
-        if (cfg.getSDRom()) {
-            if (sdrom != null) {
-                sdrom.stopThread();
+        if (!bResetInProgress) {
+            //vice, nez 1 nesmi byt reset spusten
+            bResetInProgress = true;
+            stopEmulation();
+            if (cfg.getSDRom()) {
+                if (sdrom != null) {
+                    sdrom.stopThread();
+                }
+                sdrom = new SDRom(this);
+                sdrom.setLED(lblLed);
+                sdrom.start();
             }
-            sdrom = new SDRom(this);
-            sdrom.setLED(lblLed);
-            sdrom.start();
-        }
+            if (cfg.disc2) {
+                if (floppyCtrl == null) {
+                    floppyCtrl = new Io8272(this);
+                    floppyCtrl.I8272reset();
+                }
+            } else {
+                floppyCtrl = null;
+            }
+            mem.Reset(dirty);
+            if (zobrgr) {
+                Arrays.fill(graf.GVRam, (byte) 0);
+            }
+            port80 = 0;
+            mem.setBootstrap(true);
+            clk.reset();
+            ic.Reset();
         
-        mem.Reset(dirty);
-        if (zobrgr) {
-            Arrays.fill(graf.GVRam, (byte)0);              
-        }
-        port80 = 0;
-        mem.setBootstrap(true);
-        clk.reset();
-        ic.Reset();
-        
-        cpu.reset();
-        pio.Reset();
-        key.Reset();
-        // pro zrychlení vykreslování se potřebuju zbavit BYTE u chars
-        // a připravit tabulky s adresama
-        for(int i=0; i<1024; i++) {znsada[i]=(chars[i]&255);
-                                   znsadainv[i]=255-znsada[i];
-                                   dstg[i]=2*(i & 0x1f)+((i>>5)*512);
-                                   dstg64[i]=(i & 0x3f)+((i>>6)*512);
-                                   dstg64[i+1024]=dstg64[i]+8192;
-                                  }
-        
-        //nastaveni Autorun SDROM
+            cpu.reset();
+            pio.Reset();
+            key.Reset();
+            // pro zrychlení vykreslování se potřebuju zbavit BYTE u chars
+            // a připravit tabulky s adresama
+            for (int i = 0; i < 1024; i++) {
+                znsada[i] = (chars[i] & 255);
+                znsadainv[i] = 255 - znsada[i];
+                dstg[i] = 2 * (i & 0x1f) + ((i >> 5) * 512);
+                dstg64[i] = (i & 0x3f) + ((i >> 6) * 512);
+                dstg64[i + 1024] = dstg64[i] + 8192;
+            }
+
+            //nastaveni Autorun SDROM
         if ((cfg.getSDRom()) && (cfg.getSDRomAutorun())) {
             if (bAutoRunAfterReset) {
                 //smazu predchozi BP, pokud ho nebylo dosazeno
@@ -222,24 +252,23 @@ public class Iq extends Thread
             }
             cpu.setBreakpoint(nAutoRunBreakAddress, true);
             bAutoRunAfterReset = true;
-        }
+        }          
    
-        
-        cpu.nAudioStatesNextCycleCorrection = 0;
-        cpu.nStartAudioTStates = clk.getTstates();
-        if((snd.isEnabled())&&(!cfg.getAudio())){            
-         //musim disablovat audio
-         snd.setEnabled(cfg.getAudio());
-         snd.deinit();
-        }else{
-          if((!snd.isEnabled())&&(cfg.getAudio())){
-            //musim spustit audio
-            snd.setEnabled(cfg.getAudio());
-            snd.init();
-          }  
-        }
-        startEmulation();
-        bResetInProgress=false;
+            cpu.nAudioStatesNextCycleCorrection = 0;
+            cpu.nStartAudioTStates = clk.getTstates();
+            if ((snd.isEnabled()) && (!cfg.getAudio())) {
+                //musim disablovat audio
+                snd.setEnabled(cfg.getAudio());
+                snd.deinit();
+            } else {
+                if ((!snd.isEnabled()) && (cfg.getAudio())) {
+                    //musim spustit audio
+                    snd.setEnabled(cfg.getAudio());
+                    snd.init();
+                }
+            }
+            startEmulation();
+            bResetInProgress = false;
         }
     }
     
@@ -251,7 +280,7 @@ public class Iq extends Thread
         paused = false;
 
         task = new IqTimer(this);
-        tim.scheduleAtFixedRate(task, 20, 20);
+        tim.scheduleAtFixedRate(task, 20, nSpeed);
        }
     
     public synchronized void stopEmulation() {        
@@ -288,7 +317,7 @@ public class Iq extends Thread
         if (paused) 
             return;
         
-        if(snd.isEnabled()){           
+        if((snd.isEnabled()&&(nSpeed==20))){
              snd.switchBuffers();
              snd.setDataReady();
             }
@@ -637,6 +666,18 @@ public class Iq extends Thread
                 return ic.readPortA0();
             case 0x89:
                 return ic.readPortA1(); 
+            case 0xAA:
+            case 0xAB:                      
+                   if(cfg.disc2){
+                       rVal=floppyCtrl.I8272in(port);
+                   }
+                   return rVal;
+            case 0xAC:  
+                   rVal=0;
+                   if(cfg.disc2){                      
+                      rVal=(floppyCtrl.dis2mnt==true ? 1 : 0);
+                   }
+                   return rVal;
             case 0xD4:
                 return graf.rpD4();
                          
@@ -713,6 +754,19 @@ public class Iq extends Thread
             case 0x89:
                 ic.writePortA1(value);
                 break;
+            case 0xAB:
+                   if(cfg.disc2){
+                      floppyCtrl.I8272out(port,(byte)value);
+                   }
+                   break;
+            case 0xAC:
+                 if (cfg.disc2) {
+                    if ((value & 1) == 1) {
+                        mem.mountDisc2();
+                        floppyCtrl.dis2mnt = true;
+                    }
+                 }
+                  break;
             case 0xEC:
                 mem.SwitchAmos(value & 0x03);
                 break;

@@ -14,8 +14,12 @@ public class Config {
 
     public boolean grafik = true;
     public boolean sdrom = false;
+    public boolean disc2 = false;
     public boolean sdromautorun = false;
+    public boolean felautorun = false;
+    public boolean amosautorun = false;
     public boolean audio = false;
+    public boolean smartkeyboard = false;
     public boolean V64ena32=false;
    
     public final byte NONE = 0;
@@ -79,26 +83,62 @@ public class Config {
         }
     }
     
+    public boolean getDisc2() {
+        return disc2;
+    }
+    
+    public void setDisc2(boolean b) {
+        if (b!=disc2) {
+            disc2 = b;
+        }
+    }
+    
+    public boolean getSmartKbd() {
+        return smartkeyboard;
+    }
+    
+    public void setSmartKbd(boolean b) {
+        if (b!=smartkeyboard) {
+            smartkeyboard = b;
+        }
+    }
+    
     public boolean getSDRom() {
         return sdrom;
     }
-    
+   
     public void setSDRom(boolean b) {
-        if (b!=sdrom) {
+        if (b != sdrom) {
             sdrom = b;
         }
     }
-    
+
     public boolean getSDRomAutorun() {
         return sdromautorun;
     }
-    
+
     public void setSDRomAutorun(boolean b) {
-        if (b!=sdromautorun) {
+        if (b != sdromautorun) {
             sdromautorun = b;
         }
     }
-    
+
+    public boolean getFelAutorun() {
+        return felautorun;
+    }
+
+    public boolean getAmosAutorun() {
+        return amosautorun;
+    }
+
+    public void setFelAutorun(boolean b) {
+        felautorun = b;
+    }
+
+    public void setAmosAutorun(boolean b) {
+        amosautorun = b;
+    }
+
     public boolean getAudio() {
         return audio;
     }

@@ -198,14 +198,16 @@ public class Debugger extends javax.swing.JFrame {
         //vyplni textove pole s assemblerem
         jTextAsmCode.setText("");
         Z80Dis disassembler=new Z80Dis();
-        Z80Dis.Opcodes=new int[65536];
+        //Z80Dis.Opcodes=new int[65536];
         int memPtr = m.cpu.getRegPC();
         for(int j=0;j<10;j++){
         int memPtrTmp=memPtr;
-        for(int i=memPtr;i<memPtr+5;i++){
-           Z80Dis.Opcodes[i]= (0xff) & (byte)m.mem.readByte(memPtrTmp);
-           memPtrTmp++;
-        }
+            for (int i = memPtr; i < memPtr + 5; i++) {
+                if (i < 65536) {
+                    Z80Dis.Opcodes[i] = (0xff) & (byte) m.mem.readByte(memPtrTmp);
+                    memPtrTmp++;
+                }
+            }
         byte OpcodeLen = disassembler.OpcodeLen(memPtr);
         String instdata="";
         for(int i=memPtr;i<memPtr+OpcodeLen;i++){
@@ -233,13 +235,15 @@ public class Debugger extends javax.swing.JFrame {
         //vyplni textove pole s assemblerem
         jTextAsmCode.setText("");
         I8080Dis disassembler=new I8080Dis();
-        I8080Dis.Opcodes=new int[65536];
+        //I8080Dis.Opcodes=new int[65536];
         int memPtr = m.cpu.getRegPC();
         for(int j=0;j<10;j++){
         int memPtrTmp=memPtr;
         for(int i=memPtr;i<memPtr+5;i++){
-           I8080Dis.Opcodes[i]= (0xff) & (byte)m.mem.readByte(memPtrTmp);
-           memPtrTmp++;
+           if(i<65536){
+            I8080Dis.Opcodes[i]= (0xff) & (byte)m.mem.readByte(memPtrTmp);
+            memPtrTmp++;
+           }
         }
 
         disassembler.Disassemble(memPtr);

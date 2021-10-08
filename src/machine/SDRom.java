@@ -367,6 +367,7 @@ public class SDRom extends Thread implements Pio8255Notify {
         //nactu argument, tj. o jaky dir se jedna
         int nLen;
         nLen = readbyte();
+        if(nLen>FAT_MAX_PATH) return;
        // System.out.println(String.format( "Len=%02X", nLen));
         for (int k = 0; k < nLen; k++) {
             cur_dir[k] = (byte) readbyte();

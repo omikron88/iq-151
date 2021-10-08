@@ -4,8 +4,6 @@
  */
 package gui;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import javax.swing.ImageIcon;
 import machine.Config;
 
@@ -32,29 +30,53 @@ public class Settings extends javax.swing.JDialog {
     }
     
     public void showDialog(Config conf) {
-        cf = conf;
-       
-
+        cf = conf;       
+        if (cf.smartkeyboard) {
+            jNormal.setSelected(false);
+            jSmart.setSelected(true); 
+        }
+         else {
+            jNormal.setSelected(true);
+            jSmart.setSelected(false);             
+        }
+        if (cf.disc2) {
+            bDisc2.setSelected(true);
+        }
+         else {
+            bDisc2.setSelected(false);            
+        }
          if (cf.grafik) {
             bGrafik.setSelected(true);
         }
          else {
             bGrafik.setSelected(false);            
         }
-         if (cf.sdrom) {
+        if (cf.sdrom) {
             bSDROM.setSelected(true);
-            jAutorun.setEnabled(true);
+            jAutorunSD.setEnabled(true);
         }
          else {
             bSDROM.setSelected(false); 
-            jAutorun.setEnabled(false);
+            jAutorunSD.setEnabled(false);
         }
         if (cf.sdromautorun) {
-            jAutorun.setSelected(true);
+            jAutorunSD.setSelected(true);
         }
          else {
-            jAutorun.setSelected(false);            
+            jAutorunSD.setSelected(false);            
+        }        
+        if (cf.felautorun) {
+            jAutorunFEL.setSelected(true);
         }
+         else {
+            jAutorunFEL.setSelected(false);            
+        }
+        if (cf.amosautorun) {
+            jAutorunAmos.setSelected(true);
+        }
+         else {
+            jAutorunAmos.setSelected(false);            
+        }        
         if (cf.audio) {
             bAudio.setSelected(true);
         }
@@ -74,7 +96,7 @@ public class Settings extends javax.swing.JDialog {
         else {
             b32.setSelected(true);            
         }
-
+        jAutorunAmos.setEnabled(false);
         switch(cf.getMain()) {
             case 0: {
                 bNone.setSelected(true);
@@ -90,9 +112,11 @@ public class Settings extends javax.swing.JDialog {
             }
             case 3: {
                 bAmos.setSelected(true);
+                jAutorunAmos.setEnabled(true);
                 break;
             }
         }
+        jAutorunFEL.setEnabled(false);
         switch(cf.getMonitor()) {
             case 10: {
                 bStandard.setSelected(true);
@@ -108,9 +132,11 @@ public class Settings extends javax.swing.JDialog {
             }
             case 13: {
                 bCPMfel.setSelected(true);
+                jAutorunFEL.setEnabled(true);
                 break;
             }
         }
+        
         ResetNeeded = false;
         setModal(true);
         setVisible(true);
@@ -129,6 +155,7 @@ public class Settings extends javax.swing.JDialog {
         VideoGroup = new javax.swing.ButtonGroup();
         MainGroup = new javax.swing.ButtonGroup();
         MonitorGroup = new javax.swing.ButtonGroup();
+        KeyboardGroup = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         RamPanel = new javax.swing.JPanel();
         b32KB = new javax.swing.JRadioButton();
@@ -141,27 +168,31 @@ public class Settings extends javax.swing.JDialog {
         bBasic6 = new javax.swing.JRadioButton();
         bBasicG = new javax.swing.JRadioButton();
         bAmos = new javax.swing.JRadioButton();
+        jAutorunAmos = new javax.swing.JCheckBox();
         MonitorPanel = new javax.swing.JPanel();
         bStandard = new javax.swing.JRadioButton();
         bDisassembler = new javax.swing.JRadioButton();
         bCPMkom = new javax.swing.JRadioButton();
         bCPMfel = new javax.swing.JRadioButton();
+        jAutorunFEL = new javax.swing.JCheckBox();
         AuxPanel = new javax.swing.JPanel();
         bGrafik = new javax.swing.JCheckBox();
         bSDROM = new javax.swing.JCheckBox();
-        jAutorun = new javax.swing.JCheckBox();
+        jAutorunSD = new javax.swing.JCheckBox();
+        bDisc2 = new javax.swing.JCheckBox();
         bOk = new javax.swing.JButton();
         bAudio = new javax.swing.JCheckBox();
+        KeyPanel = new javax.swing.JPanel();
+        jNormal = new javax.swing.JRadioButton();
+        jSmart = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Settings");
-        setModal(true);
         setName("SettingsDlg"); // NOI18N
         setResizable(false);
         getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED));
-        jPanel1.setPreferredSize(new java.awt.Dimension(310, 290));
 
         RamPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("RAM Size"));
 
@@ -264,10 +295,17 @@ public class Settings extends javax.swing.JDialog {
         });
 
         MainGroup.add(bAmos);
-        bAmos.setText("Amos (Ass+Pas)");
+        bAmos.setText("Amos (A+P)");
         bAmos.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bAmosActionPerformed(evt);
+            }
+        });
+
+        jAutorunAmos.setText("Autorun");
+        jAutorunAmos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jAutorunAmosActionPerformed(evt);
             }
         });
 
@@ -281,8 +319,11 @@ public class Settings extends javax.swing.JDialog {
                     .addComponent(bBasicG)
                     .addComponent(bBasic6)
                     .addComponent(bNone)
-                    .addComponent(bAmos))
-                .addContainerGap(37, Short.MAX_VALUE))
+                    .addGroup(MainPanelLayout.createSequentialGroup()
+                        .addComponent(bAmos)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jAutorunAmos)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         MainPanelLayout.setVerticalGroup(
             MainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -293,11 +334,14 @@ public class Settings extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(bBasicG, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(bAmos, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(MainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(bAmos, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jAutorunAmos))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         MonitorPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Monitor"));
+        MonitorPanel.setPreferredSize(new java.awt.Dimension(150, 150));
 
         MonitorGroup.add(bStandard);
         bStandard.setText("Standard");
@@ -331,17 +375,30 @@ public class Settings extends javax.swing.JDialog {
             }
         });
 
+        jAutorunFEL.setText("Autorun");
+        jAutorunFEL.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jAutorunFELActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout MonitorPanelLayout = new javax.swing.GroupLayout(MonitorPanel);
         MonitorPanel.setLayout(MonitorPanelLayout);
         MonitorPanelLayout.setHorizontalGroup(
             MonitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(MonitorPanelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
                 .addGroup(MonitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(bCPMkom)
-                    .addComponent(bDisassembler)
-                    .addComponent(bStandard)
-                    .addComponent(bCPMfel)))
+                    .addGroup(MonitorPanelLayout.createSequentialGroup()
+                        .addGroup(MonitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(bCPMkom)
+                            .addComponent(bDisassembler)
+                            .addComponent(bStandard))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(MonitorPanelLayout.createSequentialGroup()
+                        .addComponent(bCPMfel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jAutorunFEL))))
         );
         MonitorPanelLayout.setVerticalGroup(
             MonitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -352,7 +409,9 @@ public class Settings extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(bCPMkom, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(bCPMfel, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(MonitorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(bCPMfel, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jAutorunFEL))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -372,10 +431,17 @@ public class Settings extends javax.swing.JDialog {
             }
         });
 
-        jAutorun.setText("Autorun");
-        jAutorun.addActionListener(new java.awt.event.ActionListener() {
+        jAutorunSD.setText("Autorun");
+        jAutorunSD.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jAutorunActionPerformed(evt);
+                jAutorunSDActionPerformed(evt);
+            }
+        });
+
+        bDisc2.setText("Disc2 (Floppy)");
+        bDisc2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bDisc2ActionPerformed(evt);
             }
         });
 
@@ -390,7 +456,8 @@ public class Settings extends javax.swing.JDialog {
                     .addGroup(AuxPanelLayout.createSequentialGroup()
                         .addComponent(bSDROM)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jAutorun)))
+                        .addComponent(jAutorunSD))
+                    .addComponent(bDisc2))
                 .addContainerGap(22, Short.MAX_VALUE))
         );
         AuxPanelLayout.setVerticalGroup(
@@ -400,8 +467,10 @@ public class Settings extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(AuxPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(bSDROM)
-                    .addComponent(jAutorun))
-                .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jAutorunSD))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(bDisc2)
+                .addGap(0, 12, Short.MAX_VALUE))
         );
 
         bOk.setText("Ok");
@@ -418,6 +487,43 @@ public class Settings extends javax.swing.JDialog {
             }
         });
 
+        KeyPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Keyboard"));
+
+        KeyboardGroup.add(jNormal);
+        jNormal.setText("Original symbols placement");
+        jNormal.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jNormalActionPerformed(evt);
+            }
+        });
+
+        KeyboardGroup.add(jSmart);
+        jSmart.setText("Smart symbols mapping");
+        jSmart.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jSmartActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout KeyPanelLayout = new javax.swing.GroupLayout(KeyPanel);
+        KeyPanel.setLayout(KeyPanelLayout);
+        KeyPanelLayout.setHorizontalGroup(
+            KeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(KeyPanelLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(KeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jNormal)
+                    .addComponent(jSmart)))
+        );
+        KeyPanelLayout.setVerticalGroup(
+            KeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(KeyPanelLayout.createSequentialGroup()
+                .addComponent(jNormal)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSmart)
+                .addGap(0, 11, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -426,23 +532,25 @@ public class Settings extends javax.swing.JDialog {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(AuxPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(60, 60, 60)
-                                .addComponent(bOk))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(bAudio))))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(MainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(RamPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(MonitorPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(VideoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap(13, Short.MAX_VALUE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(MonitorPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
+                            .addComponent(VideoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(AuxPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(bAudio)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(bOk))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(KeyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE)))))
+                .addGap(66, 66, 66))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -452,21 +560,22 @@ public class Settings extends javax.swing.JDialog {
                     .addComponent(RamPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(VideoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(MonitorPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(MonitorPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
                     .addComponent(MainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(AuxPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(AuxPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(24, 24, 24))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(32, 32, 32)
-                        .addComponent(bAudio)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
-                        .addComponent(bOk)
-                        .addGap(48, 48, 48))))
+                        .addComponent(KeyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(11, 11, 11)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(bAudio)
+                            .addComponent(bOk))))
+                .addContainerGap(74, Short.MAX_VALUE))
         );
+
+        KeyPanel.getAccessibleContext().setAccessibleName("Kayboard");
 
         getContentPane().add(jPanel1);
         jPanel1.getAccessibleContext().setAccessibleName("");
@@ -484,21 +593,25 @@ public class Settings extends javax.swing.JDialog {
 
     private void bAmosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bAmosActionPerformed
         cf.setMain(cf.AMOS);
+        jAutorunAmos.setEnabled(bAmos.isSelected());
         ResetNeeded = true;
     }//GEN-LAST:event_bAmosActionPerformed
 
     private void bBasicGActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bBasicGActionPerformed
         cf.setMain(cf.BASICG);
+        jAutorunAmos.setEnabled(bAmos.isSelected());
         ResetNeeded = true;
     }//GEN-LAST:event_bBasicGActionPerformed
 
     private void bBasic6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bBasic6ActionPerformed
         cf.setMain(cf.BASIC6);
+        jAutorunAmos.setEnabled(bAmos.isSelected());
         ResetNeeded = true;
     }//GEN-LAST:event_bBasic6ActionPerformed
 
     private void bNoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bNoneActionPerformed
         cf.setMain(cf.NONE);
+        jAutorunAmos.setEnabled(bAmos.isSelected());
         ResetNeeded = true;
     }//GEN-LAST:event_bNoneActionPerformed
 
@@ -522,45 +635,75 @@ public class Settings extends javax.swing.JDialog {
         ResetNeeded = true;
     }//GEN-LAST:event_b32KBActionPerformed
 
-    private void bStandardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bStandardActionPerformed
-        cf.setMonitor(cf.Mstandard);
-        ResetNeeded = true;
-    }//GEN-LAST:event_bStandardActionPerformed
-
-    private void bDisassemblerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bDisassemblerActionPerformed
-        cf.setMonitor(cf.Mdisassembler);
-        ResetNeeded = true;
-    }//GEN-LAST:event_bDisassemblerActionPerformed
-
-    private void bCPMkomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bCPMkomActionPerformed
-        cf.setMonitor(cf.MCPMkom);
-        ResetNeeded = true;
-    }//GEN-LAST:event_bCPMkomActionPerformed
-
-    private void bCPMfelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bCPMfelActionPerformed
-        cf.setMonitor(cf.MCPMfel);
-        ResetNeeded = true;
-    }//GEN-LAST:event_bCPMfelActionPerformed
-
     private void bSDROMItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_bSDROMItemStateChanged
-        if (bSDROM.isSelected()){cf.sdrom=true;}else{cf.sdrom=false;};
-        jAutorun.setEnabled(bSDROM.isSelected());
+        cf.sdrom=bSDROM.isSelected();
+        jAutorunSD.setEnabled(bSDROM.isSelected());
         ResetNeeded = true;
     }//GEN-LAST:event_bSDROMItemStateChanged
 
     private void bAudioItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_bAudioItemStateChanged
-        if(bAudio.isSelected()){cf.audio=true;}else{cf.audio=false;};
+        cf.audio=bAudio.isSelected();
         ResetNeeded = true;
     }//GEN-LAST:event_bAudioItemStateChanged
 
-    private void jAutorunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAutorunActionPerformed
-        if (jAutorun.isSelected()){cf.sdromautorun=true;}else{cf.sdromautorun=false;};
+    private void jAutorunSDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAutorunSDActionPerformed
+        cf.sdromautorun=jAutorunSD.isSelected();
         ResetNeeded = true;
-    }//GEN-LAST:event_jAutorunActionPerformed
+    }//GEN-LAST:event_jAutorunSDActionPerformed
+
+    private void bDisc2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bDisc2ActionPerformed
+        cf.setDisc2(bDisc2.isSelected());
+        ResetNeeded = true;
+    }//GEN-LAST:event_bDisc2ActionPerformed
+
+    private void jAutorunAmosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAutorunAmosActionPerformed
+        cf.amosautorun = jAutorunAmos.isSelected();       
+        ResetNeeded = true;
+    }//GEN-LAST:event_jAutorunAmosActionPerformed
+
+    private void jAutorunFELActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jAutorunFELActionPerformed
+        cf.felautorun = jAutorunFEL.isSelected();       
+        ResetNeeded = true;
+    }//GEN-LAST:event_jAutorunFELActionPerformed
+
+    private void bCPMfelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bCPMfelActionPerformed
+        cf.setMonitor(cf.MCPMfel);
+        jAutorunFEL.setEnabled(bCPMfel.isSelected());
+        ResetNeeded = true;
+    }//GEN-LAST:event_bCPMfelActionPerformed
+
+    private void bCPMkomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bCPMkomActionPerformed
+        cf.setMonitor(cf.MCPMkom);
+        jAutorunFEL.setEnabled(bCPMfel.isSelected());
+        ResetNeeded = true;
+    }//GEN-LAST:event_bCPMkomActionPerformed
+
+    private void bDisassemblerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bDisassemblerActionPerformed
+        cf.setMonitor(cf.Mdisassembler);
+        jAutorunFEL.setEnabled(bCPMfel.isSelected());
+        ResetNeeded = true;
+    }//GEN-LAST:event_bDisassemblerActionPerformed
+
+    private void bStandardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bStandardActionPerformed
+        cf.setMonitor(cf.Mstandard);
+        jAutorunFEL.setEnabled(bCPMfel.isSelected());
+        ResetNeeded = true;
+    }//GEN-LAST:event_bStandardActionPerformed
+
+    private void jNormalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jNormalActionPerformed
+        cf.smartkeyboard=false;
+                
+    }//GEN-LAST:event_jNormalActionPerformed
+
+    private void jSmartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSmartActionPerformed
+        cf.smartkeyboard=true;
+    }//GEN-LAST:event_jSmartActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel AuxPanel;
+    private javax.swing.JPanel KeyPanel;
+    private javax.swing.ButtonGroup KeyboardGroup;
     private javax.swing.ButtonGroup MainGroup;
     private javax.swing.JPanel MainPanel;
     private javax.swing.ButtonGroup MonitorGroup;
@@ -580,12 +723,17 @@ public class Settings extends javax.swing.JDialog {
     private javax.swing.JRadioButton bCPMfel;
     private javax.swing.JRadioButton bCPMkom;
     private javax.swing.JRadioButton bDisassembler;
+    private javax.swing.JCheckBox bDisc2;
     private javax.swing.JCheckBox bGrafik;
     private javax.swing.JRadioButton bNone;
     private javax.swing.JButton bOk;
     private javax.swing.JCheckBox bSDROM;
     private javax.swing.JRadioButton bStandard;
-    private javax.swing.JCheckBox jAutorun;
+    private javax.swing.JCheckBox jAutorunAmos;
+    private javax.swing.JCheckBox jAutorunFEL;
+    private javax.swing.JCheckBox jAutorunSD;
+    private javax.swing.JRadioButton jNormal;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JRadioButton jSmart;
     // End of variables declaration//GEN-END:variables
 }

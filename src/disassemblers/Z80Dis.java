@@ -5,7 +5,7 @@ package disassemblers;
 
 
 public class Z80Dis {
-    public static int[] Opcodes;
+    public static int[] Opcodes=new int[65600];
 
 
     public byte OpcodeLen(int p) {

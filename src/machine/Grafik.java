@@ -17,6 +17,7 @@ public class Grafik {
     public boolean PenOn;
     public int D0;
     public int D1;
+    public int D2;
     
     private byte[][] GrafRam = new byte[64][256];
     private byte[] zrct = new byte[256];
@@ -24,7 +25,7 @@ public class Grafik {
     private static final char gbt1[] = {254,253,251,247,239,223,191,127};
     private int[][] gvradr = new int[64][256];
     
-    public void Init() {
+    public void Init() {        
        for(int j=0; j<256; j++) {zrct[j]=zrcadlo(j);}
        for(int i=0; i<64; i++) {
          for(int j=0; j<256; j++) {gvradr[i][j]=i+16320-j*64;}
@@ -41,7 +42,21 @@ public class Grafik {
          if ((value & 2)==2) { PenOn= true;} else{ PenOn=false;}
     }
     public void wpD3(int value) {
-
+        if ((value & 128) == 0) {
+           //nastavovani portu C pres CWR
+           int nValueShort=value & 15;
+           int nPos=nValueShort>>1;
+           int nVal=nValueShort & 1;
+           if(nPos == 0){
+              BitAcces = nVal == 1 ? false : true;
+           }
+           if(nPos == 3){
+              ShowGR = nVal == 0 ? false : true;
+           }
+           if(nPos == 1){
+              PenOn = nVal == 0 ? false : true;
+           }
+        }
     }
     
     public void wpD4(int value) {

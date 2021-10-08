@@ -28,7 +28,7 @@ package disassemblers;
 
 public class I8080Dis {
 
-    public static int[] Opcodes;
+    public static int[] Opcodes=new int[65600];
     public static byte nInstrLen;
 
     public String Disassemble(int adr) {

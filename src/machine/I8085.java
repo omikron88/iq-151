@@ -4,13 +4,15 @@ import disassemblers.Z80Dis;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import static utils.Config.amosautorun;
 
 public class I8085 {
-
-   // boolean bStartWrite=false;
-   // String strAsmfile = utils.Config.getMyPath() + "ASMLog.txt";
-   // PrintWriter f=null;
-  //  Z80Dis disassembler = new Z80Dis();
+ //---------------------------
+//    boolean bStartWrite=false;
+//    String strAsmfile = utils.Config.getMyPath() + "ASMLog.txt";
+//    PrintWriter f=null;
+//    Z80Dis disassembler = new Z80Dis();
+  //-----------------------------------------------
     public final Clock clock;
     private final MemIoOps MemIoImpl;
     private final NotifyOps NotifyImpl;
@@ -786,32 +788,53 @@ public class I8085 {
                 intr();
             }
 
-            if (breakpointAt[regPC]) {
+            if (breakpointAt[regPC]) { 
                 if ((utils.Config.sdrom) && (utils.Config.sdromautorun) && (regPC == ((Iq) NotifyImpl).nAutoRunBreakAddress) && (((Iq) NotifyImpl).bAutoRunAfterReset)) {
                     //spusteni SDROM Autorun
                     setBreakpoint(regPC, false);
-                    ((Iq) NotifyImpl).bAutoRunAfterReset = false;     
+                    ((Iq) NotifyImpl).bAutoRunAfterReset = false;
                     MemIoImpl.poke8(3, (byte)85);
                     push(0);
-                    setRegPC(0xF3BA); //L v monitoru                   
+                    setRegPC(0xF3BA); //L v monitoru
                 } else {
-                    //klasicky Breakpoint spusti Debugger
+                    //Breakpoint spusti Debugger
                     opCode = NotifyImpl.atAddress(regPC, opCode);
                     Iq m = (Iq) NotifyImpl;
                     m.stopEmulation();
 
                     m.getDebugger().showDialog();
-                    break;
-                }
+                    break;                
+               }
             }
-/*
-            if (bStartWrite) {
+            //autostart SD-ROM - nefunkční
+            /*
+            if ((utils.Config.sdrom) && (utils.Config.sdromautorun) && (regPC == ((Iq) NotifyImpl).nAutoRunBreakAddress)) {
+                MemIoImpl.poke8(3, (byte) 85);
+                push(0);
+                setRegPC(0xF3BA); //L v monitoru                
+            }
+            */
+            //autostart Amos
+            if((utils.Config.mainmodule==3)&&(utils.Config.amosautorun)&&(regPC==0x0F1E3)){                
+                setRegHL(0x8000);
+                MemIoImpl.poke16(MemIoImpl.peek16(0x2A), 0xF432);
+                setRegPC(0xF41B);
+            }
+            //autostart FEL
+            if((utils.Config.monitor==13)&&(utils.Config.felautorun)&&(regPC==0x0F1E3)){                
+                setRegPC(0xFFF8);                
+            }
+//------------------------------
+/* 
+if (bStartWrite) {
                 try {
                     if(f==null){
                       f = new PrintWriter(new java.io.OutputStreamWriter(new java.io.FileOutputStream(strAsmfile, true)));  
                     }
                     for (int i = getRegPC(); i < getRegPC() + 5; i++) {
-                        Z80Dis.Opcodes[i] = (0xff) & (byte) MemIoImpl.peek8(i);
+                        int j=i;
+                        if(i>65535) j=i-65536;
+                        Z80Dis.Opcodes[j] = (0xff) & (byte) MemIoImpl.peek8(j);
                     }                   
                     f.println(String.format("%04X\t%s", getRegPC(), disassembler.Disassemble(getRegPC())));
                     
@@ -823,7 +846,8 @@ public class I8085 {
                 f=null;
               }  
             }
-  */          
+*/
+ //----------------------------          
             
             opCode = MemIoImpl.fetchOpcode(regPC);
 
