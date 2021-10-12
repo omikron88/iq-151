@@ -78,7 +78,7 @@ public class Iq extends Thread
     public boolean bSav=false;
     public boolean bAutoRunAfterReset;
     
-    int nSpeed=20;
+    int nSpeed=2;
     
     public Iq() {                
         img = new BufferedImage(sirka, vyska, BufferedImage.TYPE_BYTE_BINARY);
@@ -139,8 +139,6 @@ public class Iq extends Thread
      
     public void setSpeed(int inSpeed){
      nSpeed=inSpeed;
-     stopEmulation();
-     startEmulation();
     }
     
     public Debugger getDebugger(){
@@ -168,6 +166,10 @@ public class Iq extends Thread
     public Config getConfig() {
         return cfg;
     } 
+    
+    public byte[][] getVideoMemory(){
+        return vm;
+    }
     
     public void setScreen(JIQScreen screen) {
         scr = screen;
@@ -280,11 +282,12 @@ public class Iq extends Thread
         paused = false;
 
         task = new IqTimer(this);
-        tim.scheduleAtFixedRate(task, 20, nSpeed);
+        tim.scheduleAtFixedRate(task, 20, 20);
        }
     
     public synchronized void stopEmulation() {        
         frame.setPauseIcon(false);
+        key.StopPasteFromClipboard();
         if (paused)
             return;
         
@@ -309,7 +312,7 @@ public class Iq extends Thread
          nSpeedPercentUpdateDec=nSpeedPercentUpdateMaxCycles;
          //zaokrouhleni nahoru
          nSpeedPercent=((nSpeedPercent/(10*nSpeedPercentUpdateMaxCycles))+7)/10;
-         frame.setTitle("jIQ151 - "+nSpeedPercent+"%");
+         frame.setTitle("jIQ151 - "+(nSpeed*nSpeedPercent)/2+"%");         
          nSpeedPercent=2000*nSpeedPercent;
          nSpeedPercentUpdateDec-=20;
         }
@@ -317,14 +320,14 @@ public class Iq extends Thread
         if (paused) 
             return;
         
-        if((snd.isEnabled()&&(nSpeed==20))){
+        if((snd.isEnabled()&&(nSpeed==2))){
              snd.switchBuffers();
              snd.setDataReady();
             }
         
         ic.assertInt(6);
-       
-        for (int t = 0; t < 40; t++) {               // half period of 1kHz
+       for (int rychl = 0; rychl < nSpeed; rychl++) { 
+        for (int t = 0; t < 20; t++) {               // half period of 1kHz
             if (!paused) {
                 cpu.execute(clk.getTstates() + 1024); // is 1024 of 2MHz Tstates
                 khz1 = !khz1;
@@ -334,6 +337,7 @@ public class Iq extends Thread
             }
 
         }
+       }
                 
 
 // zjisti jestli se má zobrazovat grafika        

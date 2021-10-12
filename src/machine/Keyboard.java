@@ -4,6 +4,7 @@
  */
 package machine;
 
+import java.awt.Button;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.lang.reflect.Field;
@@ -19,6 +20,7 @@ public final class Keyboard implements KeyListener {
     private boolean ctrl;
     private boolean fa;
     private boolean fb;
+    public PasteFromClipboard clip=null;
     
     private boolean correcting=false;
     
@@ -130,7 +132,8 @@ public final class Keyboard implements KeyListener {
     }
     
     @Override
-    public void keyPressed(KeyEvent ke) { 
+    public void keyPressed(KeyEvent ke) {
+        StopPasteFromClipboard();
         if(utils.Config.smartkeyboard){
             keyPressedSmart(ke);
         }else{
@@ -174,6 +177,9 @@ public final class Keyboard implements KeyListener {
                 break;           
             case KeyEvent.VK_ENTER:     // CR
                 row[4] &= rb4;
+                break;
+            case KeyEvent.VK_BACK_SPACE:     // backspace
+                row[5] &= rb6;
                 break;
             case KeyEvent.VK_DELETE:    // DC - Del
                 row[4] &= rb5;
@@ -316,15 +322,19 @@ public final class Keyboard implements KeyListener {
                 shift=ke.isShiftDown();                
                 break;
             default:
-                keyPressDecodeByChar(ke);
+                char nChr=isLatinPrintableChar(ke.getKeyChar()) ? ke.getKeyChar() : ((KeyEvent.getKeyText(ke.getKeyCode()).length()==1) ? Character.toLowerCase(KeyEvent.getKeyText(ke.getKeyCode()).charAt(0)) : 0);   
+                keyPressDecodeByChar(nChr);
                 break;
                
         }
     }
   
-       public void keyPressDecodeByChar(KeyEvent ke) {         
-        char nChr=isLatinPrintableChar(ke.getKeyChar()) ? ke.getKeyChar() : ((KeyEvent.getKeyText(ke.getKeyCode()).length()==1) ? Character.toLowerCase(KeyEvent.getKeyText(ke.getKeyCode()).charAt(0)) : 0);   
+       public void keyPressDecodeByChar(char nChr) {       
         switch (nChr){
+            case ' ':    //space
+                row[7] &= rb3;               
+                shift = false;
+		break;
             case '1':    //1
                 row[0] &= rb0;
                 shift=false;
@@ -728,6 +738,9 @@ public final class Keyboard implements KeyListener {
             case KeyEvent.VK_ENTER:     // CR
                 row[4] |= sb4;
                 break;
+            case KeyEvent.VK_BACK_SPACE:     // backspace
+                row[5] |= sb6;
+                break;
             case KeyEvent.VK_DELETE:    // DC - Del
                 row[4] |= sb5;
                 break;
@@ -858,16 +871,19 @@ public final class Keyboard implements KeyListener {
                   shift=false;   // \
                 break;
             default:
-                keyReleaseDecodeByChar(ke);
+                char nChr=isLatinPrintableChar(ke.getKeyChar()) ? ke.getKeyChar() : ((KeyEvent.getKeyText(ke.getKeyCode()).length()==1) ? Character.toLowerCase(KeyEvent.getKeyText(ke.getKeyCode()).charAt(0)) : 0);     
+                keyReleaseDecodeByChar(nChr);
                 break;
                
         }
     }
     
-        public void keyReleaseDecodeByChar(KeyEvent ke) {        
-        //char nChr=isLatinPrintableChar(ke.getKeyChar()) ? ke.getKeyChar() : Character.toLowerCase(KeyEvent.getKeyText(ke.getKeyCode()).charAt(0));
-        char nChr=isLatinPrintableChar(ke.getKeyChar()) ? ke.getKeyChar() : ((KeyEvent.getKeyText(ke.getKeyCode()).length()==1) ? Character.toLowerCase(KeyEvent.getKeyText(ke.getKeyCode()).charAt(0)) : 0);     
+        public void keyReleaseDecodeByChar(char nChr) {                        
         switch (nChr){
+            case ' ':    //space
+                row[7] |= sb3;               
+                shift = false;
+		break;           
             case '1':    //1
                 row[0] |= sb0;                
                 shift = false;
@@ -1768,5 +1784,83 @@ public final class Keyboard implements KeyListener {
         }
     }
     
+    public void StartPasteFromClipboard(String inPaste){
+        clip=new PasteFromClipboard(inPaste);
+        clip.start();
+    }
+    
+    public void StopPasteFromClipboard(){
+        if(clip!=null){
+           clip.stopNow();
+           clip=null;
+        }
+    }
+   
+    //vlakno simuluje psani na klavesnici pri vkladani ze schranky
+      public class PasteFromClipboard extends Thread {
+
+        Object sync = new Object();
+        String strContent;
+        boolean bRun = false;
+
+        public PasteFromClipboard(String inContent) {
+            strContent = inContent;
+        }
+
+          public void stopNow() {
+              if (bRun) {
+                  bRun = false;
+                  try {
+                      synchronized (sync) {
+                          sync.wait();
+                      }
+                  } catch (InterruptedException ex) {
+                  }
+              }
+          }
+        
+        //pauza mezi pismeny
+        private void Sleep() {
+            try {
+                Thread.sleep(60);
+            } catch (InterruptedException ex) {
+            }
+        }
+
+        public void run() {
+            bRun = true;
+            for (int i = 0; (i < strContent.length()) && (bRun); i++) {
+                char nChar = strContent.charAt(i);
+                if ((nChar == 13) || (nChar == 10)) {
+                    Button a = new Button();
+                    KeyEvent ke = new KeyEvent(a, 13, 20, 1, 10, ' ');
+                    keyPressedOriginal(ke);
+                    Sleep();
+                    keyReleasedOriginal(ke);
+                    for(int slp=0;slp<10;slp++) Sleep();                    
+                } else {
+                    if (isLatinPrintableChar(nChar)) {
+                        //IQ151 ma default uppercase a se shiftem lowercase, proto ivertuji
+                        if (Character.isLowerCase(nChar)) {
+                            nChar = Character.toUpperCase(nChar);
+                        } else {
+                            if (Character.isUpperCase(nChar)) {
+                                nChar = Character.toLowerCase(nChar);
+                            }
+                        }
+                        keyPressDecodeByChar(nChar);
+                        Sleep();
+                        keyReleaseDecodeByChar(nChar);
+                        Sleep();
+                    }
+                }
+            }
+            bRun = false;
+            synchronized (sync) {
+                sync.notifyAll();
+            }
+        }
+
+    }
     
 }

@@ -5,11 +5,17 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.File;
@@ -37,6 +43,8 @@ import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import machine.Config;
 import machine.Iq;
+import machine.Keyboard;
+import machine.SDRom;
 
 /**
  *
@@ -91,7 +99,9 @@ public class JIQ151 extends javax.swing.JFrame {
         jCheckBoxspeed1.setSelected(true);
         jCheckBoxSpeed2.setSelected(false);
         jCheckBoxSpeed3.setSelected(false);
-        m.setSpeed(20);
+        jCheckBoxSpeed4.setSelected(false);
+        jCheckBoxSpeed5.setSelected(false);
+        m.setSpeed(2);
         
         if(utils.Config.sdrom){
             addLEDbar();
@@ -253,11 +263,15 @@ public class JIQ151 extends javax.swing.JFrame {
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
+        jMenuCopy = new javax.swing.JMenuItem();
+        jMenuPaste = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         jCheckBoxSpeed05 = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxspeed1 = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxSpeed2 = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxSpeed3 = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxSpeed4 = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxSpeed5 = new javax.swing.JCheckBoxMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItem4 = new javax.swing.JMenuItem();
         jSeparator5 = new javax.swing.JPopupMenu.Separator();
@@ -507,6 +521,22 @@ public class JIQ151 extends javax.swing.JFrame {
         });
         jMenu8.add(jMenuItem3);
 
+        jMenuCopy.setText("Copy screen to clipboard");
+        jMenuCopy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuCopyActionPerformed(evt);
+            }
+        });
+        jMenu8.add(jMenuCopy);
+
+        jMenuPaste.setText("Paste from clipboard");
+        jMenuPaste.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuPasteActionPerformed(evt);
+            }
+        });
+        jMenu8.add(jMenuPaste);
+
         jMenu3.setText("Speed");
 
         jCheckBoxSpeed05.setSelected(true);
@@ -544,6 +574,24 @@ public class JIQ151 extends javax.swing.JFrame {
             }
         });
         jMenu3.add(jCheckBoxSpeed3);
+
+        jCheckBoxSpeed4.setSelected(true);
+        jCheckBoxSpeed4.setText("10x");
+        jCheckBoxSpeed4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSpeed4ActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxSpeed4);
+
+        jCheckBoxSpeed5.setSelected(true);
+        jCheckBoxSpeed5.setText("40x");
+        jCheckBoxSpeed5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSpeed5ActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxSpeed5);
 
         jMenu8.add(jMenu3);
 
@@ -973,7 +1021,9 @@ public class JIQ151 extends javax.swing.JFrame {
         jCheckBoxspeed1.setSelected(false);
         jCheckBoxSpeed2.setSelected(false);
         jCheckBoxSpeed3.setSelected(false);
-        m.setSpeed(40);
+        jCheckBoxSpeed4.setSelected(false);
+        jCheckBoxSpeed5.setSelected(false);
+        m.setSpeed(1);
     }//GEN-LAST:event_jCheckBoxSpeed05ActionPerformed
 
     private void jCheckBoxspeed1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxspeed1ActionPerformed
@@ -981,7 +1031,9 @@ public class JIQ151 extends javax.swing.JFrame {
         jCheckBoxspeed1.setSelected(true);
         jCheckBoxSpeed2.setSelected(false);
         jCheckBoxSpeed3.setSelected(false);
-        m.setSpeed(20);
+        jCheckBoxSpeed4.setSelected(false);
+        jCheckBoxSpeed5.setSelected(false);
+        m.setSpeed(2);
     }//GEN-LAST:event_jCheckBoxspeed1ActionPerformed
 
     private void jCheckBoxSpeed2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed2ActionPerformed
@@ -989,7 +1041,9 @@ public class JIQ151 extends javax.swing.JFrame {
         jCheckBoxspeed1.setSelected(false);
         jCheckBoxSpeed2.setSelected(true);
         jCheckBoxSpeed3.setSelected(false);
-        m.setSpeed(10);
+        jCheckBoxSpeed4.setSelected(false);
+        jCheckBoxSpeed5.setSelected(false);
+        m.setSpeed(4);
     }//GEN-LAST:event_jCheckBoxSpeed2ActionPerformed
 
     private void jCheckBoxSpeed3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed3ActionPerformed
@@ -997,19 +1051,72 @@ public class JIQ151 extends javax.swing.JFrame {
         jCheckBoxspeed1.setSelected(false);
         jCheckBoxSpeed2.setSelected(false);
         jCheckBoxSpeed3.setSelected(true);
-        m.setSpeed(5);
+        jCheckBoxSpeed4.setSelected(false);
+        jCheckBoxSpeed5.setSelected(false);
+        m.setSpeed(8);
     }//GEN-LAST:event_jCheckBoxSpeed3ActionPerformed
+
+    private void jMenuPasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuPasteActionPerformed
+       m.scr.PasteFromClip();
+    }//GEN-LAST:event_jMenuPasteActionPerformed
+
+    private void jCheckBoxSpeed4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed4ActionPerformed
+        jCheckBoxSpeed05.setSelected(false);
+        jCheckBoxspeed1.setSelected(false);
+        jCheckBoxSpeed2.setSelected(false);
+        jCheckBoxSpeed3.setSelected(false);
+        jCheckBoxSpeed4.setSelected(true);
+        jCheckBoxSpeed5.setSelected(false);
+        m.setSpeed(20);
+    }//GEN-LAST:event_jCheckBoxSpeed4ActionPerformed
+
+    private void jCheckBoxSpeed5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed5ActionPerformed
+        jCheckBoxSpeed05.setSelected(false);
+        jCheckBoxspeed1.setSelected(false);
+        jCheckBoxSpeed2.setSelected(false);
+        jCheckBoxSpeed3.setSelected(false);
+        jCheckBoxSpeed4.setSelected(false);
+        jCheckBoxSpeed5.setSelected(true);
+        m.setSpeed(80);
+    }//GEN-LAST:event_jCheckBoxSpeed5ActionPerformed
+
+    private void jMenuCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuCopyActionPerformed
+        String strClipContent = "";
+        byte vm[][] = m.getVideoMemory();
+        int nEosCnt;
+        int nPg = 1;
+        int nEos = 32;
+        if (m.getConfig().getVideo() == m.getConfig().VIDEO64) {
+            nPg = 2;
+            nEos = 64;
+        }
+        nEosCnt = nEos;
+        for (int j = 0; j < nPg; j++) {
+            for (int i = 0; i < 1024; i++) {
+                strClipContent += (char)((vm[j][i] & 0x7f) > 32 ? (vm[j][i] & 0x7f) : 32);
+                nEosCnt--;
+                if (nEosCnt == 0) {
+                    strClipContent += (char) 10;
+                    nEosCnt = nEos;
+                }
+            }
+        }
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        StringSelection strSel = new StringSelection(strClipContent);
+        clipboard.setContents(strSel, null);
+    }//GEN-LAST:event_jMenuCopyActionPerformed
 
     private void initEmulator() {
         m = new Iq();
-        scr = new JIQScreen();       
+        scr = new JIQScreen();
+        scr.setMachine(m);
         m.setScreen(scr);
         scr.setImage(m.getImage());
         deb=new Debugger(m);        
         bopn=new BinOpen(m);
         bsav=new BinSave(m);
         m.setDebugger(deb); 
-        m.setFrame(this);
+        m.setFrame(this);        
         getContentPane().add(scr, BorderLayout.CENTER);
         pack();
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1068,6 +1175,8 @@ public class JIQ151 extends javax.swing.JFrame {
     private javax.swing.JCheckBoxMenuItem jCheckBoxSpeed05;
     private javax.swing.JCheckBoxMenuItem jCheckBoxSpeed2;
     private javax.swing.JCheckBoxMenuItem jCheckBoxSpeed3;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxSpeed4;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxSpeed5;
     private javax.swing.JCheckBoxMenuItem jCheckBoxspeed1;
     private javax.swing.JButton jDebugger;
     private javax.swing.JLabel jFloppy1;
@@ -1081,11 +1190,13 @@ public class JIQ151 extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu8;
     private javax.swing.JMenu jMenu9;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuCopy;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
+    private javax.swing.JMenuItem jMenuPaste;
     private javax.swing.JButton jPause;
     private javax.swing.JButton jResetIco;
     private javax.swing.JButton jSaveMem;

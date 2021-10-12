@@ -1,13 +1,31 @@
 package gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
+import machine.Iq;
 
 /*
  * To change this template, choose Tools | Templates
@@ -18,20 +36,26 @@ import java.awt.image.BufferedImage;
  *
  * @author admin
  */
-public class JIQScreen extends javax.swing.JPanel {
+public class JIQScreen extends javax.swing.JPanel implements MouseMotionListener, MouseListener {
 
     private BufferedImage image;
     
     private AffineTransform tr;
     private AffineTransformOp trOp;
     private RenderingHints rHints;
+    private Iq m;
+    Rectangle selection;
+    Rectangle lastselection=null;
+    Point anchor;
     
     /**
      * Creates new form JIQScreen
      */
     public JIQScreen() {
         initComponents();
-        
+        addMouseListener(this);
+        addMouseMotionListener(this);
+            
         image = null;
         
         tr = AffineTransform.getScaleInstance(1.0f, 2.0f);
@@ -56,14 +80,24 @@ public class JIQScreen extends javax.swing.JPanel {
     public void setImage(BufferedImage img) {
         image = img;
     } // setImage
-                
+       
+    public void setMachine(Iq inM) {
+        m=inM;
+    }
+    
     @Override
     public void paintComponent(Graphics gc) {
         Graphics2D gc2 = (Graphics2D) gc;
-        
-        if (image!=null) {
+
+        if (image != null) {
             gc2.drawImage(image, trOp, 0, 0);
         }
+        if (selection != null) {
+            Graphics2D g2d = (Graphics2D) gc;
+            g2d.setColor(new Color(0, 0x78, 0xD7));
+            g2d.draw(selection);
+        }
+
     } // paintComponent
             
     /**
@@ -89,6 +123,143 @@ public class JIQScreen extends javax.swing.JPanel {
             .addGap(0, 296, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+    public void mousePressed(MouseEvent e) {
+        anchor = e.getPoint();
+        if(e.getButton()==MouseEvent.BUTTON3){
+           JPopupMenu pasteMenu = new JPopupMenu("PasteMenu"); 
+           JMenuItem item3 = new JMenuItem("Paste");                
+                item3.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent arg0) {
+                        PasteFromClip();
+                    }
+                });
+                pasteMenu.add(item3);
+                pasteMenu.show(e.getComponent(), e.getX(), e.getY());
+        }else{
+         selection = new Rectangle(anchor);
+        }
+    }
+
+    public void mouseDragged(MouseEvent e) {
+        if (selection != null) {
+            selection.setBounds((int) Math.min(anchor.x, e.getX()), (int) Math.min(anchor.y, e.getY()),
+                    (int) Math.abs(e.getX() - anchor.x), (int) Math.abs(e.getY() - anchor.y));
+        }
+        repaint();
+    }
+
+    public void mouseReleased(MouseEvent e) {
+        if (selection != null) {
+            if (!selection.isEmpty()) {
+                lastselection=selection;
+                JPopupMenu selectMenu = new JPopupMenu("Selection");
+                selectMenu.addPopupMenuListener(new PopupMenuListener() {
+                    @Override
+                    public void popupMenuCanceled(PopupMenuEvent arg0) {
+                        lastselection=null;
+                    }
+                    @Override
+                    public void popupMenuWillBecomeVisible(PopupMenuEvent arg0) {                       
+                    }
+                    @Override
+                    public void popupMenuWillBecomeInvisible(PopupMenuEvent arg0) {                       
+                    }
+                });
+                JMenuItem item1 = new JMenuItem("Copy");                
+                item1.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent arg0) {
+                        CopyToClip(lastselection);
+                        lastselection=null;
+                    }
+                });
+                selectMenu.add(item1);                
+                selectMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        }
+        selection = null;
+        repaint();
+    }
+    
+    public void CopyToClip(Rectangle selection){
+        String strClipContent = "";
+        byte vm[][] = m.getVideoMemory();
+        int nLeftBorderX=20;
+        int nTopBorderY=14; 
+        int nPg = 1;
+        int nCharSize=16;
+         if (m.getConfig().getVideo() == m.getConfig().VIDEO64) {
+          nCharSize=8; 
+          nPg = 2;
+         }       
+        int x1=(selection.x-nLeftBorderX)>0?(selection.x-nLeftBorderX):0;
+        int y1=(selection.y-nTopBorderY)>0?(selection.y-nTopBorderY):0;
+        int x2=((selection.x+selection.width)-nLeftBorderX)>0?((selection.x+selection.width)-nLeftBorderX):0;        
+        int y2=((selection.y+selection.height)-nTopBorderY)>0?((selection.y+selection.height)-nTopBorderY):0;
+        int newX1=Math.round((float)x1/(float)nCharSize);
+        int newY1=Math.round((float)y1/(float)16);
+        int newX2=Math.round((float)x2/(float)nCharSize);
+        if(newX2>nPg*32){
+            newX2=nPg*32;
+        }
+        int newY2=Math.round((float)y2/(float)16);
+        if(newY2>nPg*32){
+            newY2=nPg*32;
+        }
+        String strLine="";
+        int posX=0,posY=0;
+        for (int j = 0; j < nPg; j++) {
+            for (int i = 0; i < 1024; i++) {
+                if (((posX >= newX1) && (posX < newX2)) && ((posY >= newY1) && (posY < newY2))) {
+                    //strClipContent += (char) ((vm[j][i] & 0x7f) > 32 ? (vm[j][i] & 0x7f) : 32);
+                    strLine += (char) ((vm[j][i] & 0x7f) > 32 ? (vm[j][i] & 0x7f) : 32);
+                }
+                posX++;
+                if (((posY >= newY1) && (posY < newY2)) && (posX == newX2)) {                    
+                    //strClipContent += (char) 10;
+                    strLine=strLine.replaceAll("\\s+$", "")+(char)10;
+                    strClipContent+=strLine;
+                    strLine="";
+                }
+                if (posX >= nPg * 32) {
+                    posX = 0;
+                    posY++;
+                }
+            }
+        }
+        if(!strClipContent.isEmpty()){
+            strClipContent=strClipContent.substring(0, strClipContent.length() - 1);
+        }
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        StringSelection strSel = new StringSelection(strClipContent);
+        clipboard.setContents(strSel, null);
+    }
+    
+    public void PasteFromClip(){
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        Transferable transf = clipboard.getContents(null);
+        if (transf.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+            try {
+                String strPaste = (String) transf.getTransferData(DataFlavor.stringFlavor);
+                if(!strPaste.isEmpty()){
+                   m.getKeyboard().StopPasteFromClipboard();
+                   m.getKeyboard().StartPasteFromClipboard(strPaste);
+                }                
+            } catch (Exception ex) {
+            }
+        }
+    }
+
+    // unused
+    public void mouseMoved(MouseEvent e) {
+    }
+    public void mouseClicked(MouseEvent e) {
+    }
+    public void mouseEntered(MouseEvent e) {
+    }
+    public void mouseExited(MouseEvent e) {
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
 }
