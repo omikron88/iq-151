@@ -1822,7 +1822,7 @@ public final class Keyboard implements KeyListener {
         //pauza mezi pismeny
         private void Sleep() {
             try {
-                Thread.sleep(60);
+                Thread.sleep(90);
             } catch (InterruptedException ex) {
             }
         }

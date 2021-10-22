@@ -1,10 +1,6 @@
 package machine;
 
-import disassemblers.Z80Dis;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.Arrays;
-import static utils.Config.amosautorun;
 
 public class I8085 {
  //---------------------------

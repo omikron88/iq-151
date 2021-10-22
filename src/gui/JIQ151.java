@@ -5,17 +5,13 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.awt.Button;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.File;
@@ -43,8 +39,6 @@ import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import machine.Config;
 import machine.Iq;
-import machine.Keyboard;
-import machine.SDRom;
 
 /**
  *
@@ -1016,43 +1010,36 @@ public class JIQ151 extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jFloppyButton2ActionPerformed
 
-    private void jCheckBoxSpeed05ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed05ActionPerformed
-        jCheckBoxSpeed05.setSelected(true);
+    private void SpeedAllDisable(){
+        jCheckBoxSpeed05.setSelected(false);
         jCheckBoxspeed1.setSelected(false);
         jCheckBoxSpeed2.setSelected(false);
         jCheckBoxSpeed3.setSelected(false);
         jCheckBoxSpeed4.setSelected(false);
         jCheckBoxSpeed5.setSelected(false);
+    }
+    
+    private void jCheckBoxSpeed05ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed05ActionPerformed
+        SpeedAllDisable();
+        jCheckBoxSpeed05.setSelected(true);
         m.setSpeed(1);
     }//GEN-LAST:event_jCheckBoxSpeed05ActionPerformed
 
     private void jCheckBoxspeed1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxspeed1ActionPerformed
-        jCheckBoxSpeed05.setSelected(false);
-        jCheckBoxspeed1.setSelected(true);
-        jCheckBoxSpeed2.setSelected(false);
-        jCheckBoxSpeed3.setSelected(false);
-        jCheckBoxSpeed4.setSelected(false);
-        jCheckBoxSpeed5.setSelected(false);
+        SpeedAllDisable();
+        jCheckBoxspeed1.setSelected(true);       
         m.setSpeed(2);
     }//GEN-LAST:event_jCheckBoxspeed1ActionPerformed
 
     private void jCheckBoxSpeed2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed2ActionPerformed
-        jCheckBoxSpeed05.setSelected(false);
-        jCheckBoxspeed1.setSelected(false);
-        jCheckBoxSpeed2.setSelected(true);
-        jCheckBoxSpeed3.setSelected(false);
-        jCheckBoxSpeed4.setSelected(false);
-        jCheckBoxSpeed5.setSelected(false);
+        SpeedAllDisable();        
+        jCheckBoxSpeed2.setSelected(true);       
         m.setSpeed(4);
     }//GEN-LAST:event_jCheckBoxSpeed2ActionPerformed
 
     private void jCheckBoxSpeed3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed3ActionPerformed
-        jCheckBoxSpeed05.setSelected(false);
-        jCheckBoxspeed1.setSelected(false);
-        jCheckBoxSpeed2.setSelected(false);
-        jCheckBoxSpeed3.setSelected(true);
-        jCheckBoxSpeed4.setSelected(false);
-        jCheckBoxSpeed5.setSelected(false);
+        SpeedAllDisable();
+        jCheckBoxSpeed3.setSelected(true);        
         m.setSpeed(8);
     }//GEN-LAST:event_jCheckBoxSpeed3ActionPerformed
 
@@ -1061,21 +1048,13 @@ public class JIQ151 extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuPasteActionPerformed
 
     private void jCheckBoxSpeed4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed4ActionPerformed
-        jCheckBoxSpeed05.setSelected(false);
-        jCheckBoxspeed1.setSelected(false);
-        jCheckBoxSpeed2.setSelected(false);
-        jCheckBoxSpeed3.setSelected(false);
-        jCheckBoxSpeed4.setSelected(true);
-        jCheckBoxSpeed5.setSelected(false);
+        SpeedAllDisable();
+        jCheckBoxSpeed4.setSelected(true);       
         m.setSpeed(20);
     }//GEN-LAST:event_jCheckBoxSpeed4ActionPerformed
 
     private void jCheckBoxSpeed5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSpeed5ActionPerformed
-        jCheckBoxSpeed05.setSelected(false);
-        jCheckBoxspeed1.setSelected(false);
-        jCheckBoxSpeed2.setSelected(false);
-        jCheckBoxSpeed3.setSelected(false);
-        jCheckBoxSpeed4.setSelected(false);
+        SpeedAllDisable();
         jCheckBoxSpeed5.setSelected(true);
         m.setSpeed(80);
     }//GEN-LAST:event_jCheckBoxSpeed5ActionPerformed

@@ -1,6 +1,5 @@
 package gui;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -74,7 +73,7 @@ public class JIQScreen extends javax.swing.JPanel implements MouseMotionListener
         setMinimumSize(new Dimension(560, 544));
         setMaximumSize(new Dimension(560, 544));
         setPreferredSize(new Dimension(560, 544));
-       // setSize(new Dimension(640, 512));
+
     } // constructor
 
     public void setImage(BufferedImage img) {
@@ -211,13 +210,11 @@ public class JIQScreen extends javax.swing.JPanel implements MouseMotionListener
         int posX=0,posY=0;
         for (int j = 0; j < nPg; j++) {
             for (int i = 0; i < 1024; i++) {
-                if (((posX >= newX1) && (posX < newX2)) && ((posY >= newY1) && (posY < newY2))) {
-                    //strClipContent += (char) ((vm[j][i] & 0x7f) > 32 ? (vm[j][i] & 0x7f) : 32);
+                if (((posX >= newX1) && (posX < newX2)) && ((posY >= newY1) && (posY < newY2))) {                    
                     strLine += (char) ((vm[j][i] & 0x7f) > 32 ? (vm[j][i] & 0x7f) : 32);
                 }
                 posX++;
                 if (((posY >= newY1) && (posY < newY2)) && (posX == newX2)) {                    
-                    //strClipContent += (char) 10;
                     strLine=strLine.replaceAll("\\s+$", "")+(char)10;
                     strClipContent+=strLine;
                     strLine="";
