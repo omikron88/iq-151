@@ -550,6 +550,7 @@ public class Iq extends Thread
         if ((c&2)== 0){img.setRGB(a++, b, col0);}  else{img.setRGB(a++, b, col1);}
         if ((c&1)== 0){img.setRGB(a, b, col0);}  else{img.setRGB(a, b, col1);}
         a=(adl&63)* 8+ofsx;
+        
         //grafik
         if (zobrgr){
           c=graf.GVRam[dst];
@@ -571,8 +572,8 @@ public class Iq extends Thread
           a+=1;
           dst+=64;
          }
-         //vymazat případné zdvojené znaky za řádkem
-         if ((adl&63)==63){for (int kk=0;kk<8;kk++){img.setRGB(a++, b, col0);}}
+         //vymazat případné zdvojené znaky za řádkem - ToMi zakomentovano, maze posledni sloupec u Video64
+         //if ((adl&63)==63){for (int kk=0;kk<8;kk++){img.setRGB(a++, b, col0);}}
          b+=1;
         }
     }

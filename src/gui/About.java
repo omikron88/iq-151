@@ -28,7 +28,7 @@ public class About extends JDialog {
     Box b2 = Box.createHorizontalBox();   
     b2.add(new JLabel("IQ151 emulator written in pure Java"));
     Box b3 = Box.createHorizontalBox();
-    b3.add(new JLabel("Build date 22.10.2021"));
+    b3.add(new JLabel("Build date 4.11.2024"));
     b.add(b2, "Center");
     b.add(b3, "Center");
     b.add(Box.createGlue());
