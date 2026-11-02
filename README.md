@@ -42,6 +42,3 @@ Příznakový bajt CPU: bit0 `pendingEI`, bit1 `activeINT`, bit2 `halted`.
 Páskový příznakový bajt: bit0 `khz1`, bit1 `tapein`, bit2 `tapeo`, bit3 `tapeout`, bit4 `tapestart`, bit5 `tapeinv`.
 
 Velikost souboru: 84 025 B s Grafikem, 67 637 B bez něj.
-
-
-## Dotčené soubory
