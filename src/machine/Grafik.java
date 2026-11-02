@@ -4,6 +4,11 @@
  */
 package machine;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 
 /**
  *
@@ -80,6 +85,34 @@ public class Grafik {
         return GrafRam[i][j]& 0xff;
     }
     
+    // ---- snapshot (.isn) ----------------------------------------------------
+
+    /** Zapise GrafRam (64 x 256 = 16384 B). GVRam se pri nacteni dopocita. */
+    public void saveSnapshot(OutputStream fOut) throws IOException {
+        for (byte[] row : GrafRam) {
+            fOut.write(row);
+        }
+    }
+
+    public void loadSnapshot(InputStream fIn) throws IOException {
+        for (byte[] row : GrafRam) {
+            int done = 0;
+            while (done < row.length) {
+                int n = fIn.read(row, done, row.length - done);
+                if (n < 0) {
+                    throw new EOFException("Neocekavany konec snapshotu");
+                }
+                done += n;
+            }
+        }
+        // prekresleni GVRam ze stejnych tabulek, jake pouziva wpD4
+        for (int i = 0; i < 64; i++) {
+            for (int j = 0; j < 256; j++) {
+                GVRam[gvradr[i][j]] = zrct[GrafRam[i][j] & 255];
+            }
+        }
+    }
+
     private byte zrcadlo(int xx) {
         int pom = 0;
         if ((xx & 1)==1) { pom|= 128;}

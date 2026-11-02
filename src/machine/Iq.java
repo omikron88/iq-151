@@ -6,6 +6,13 @@ package machine;
 
 import gui.JIQScreen;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.EOFException;
+import java.io.FileInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -340,6 +347,12 @@ public class Iq extends Thread
        }
                 
 
+        redrawScreen();
+    }
+
+    /** Prekresli celou obrazovku z videopameti. Volano kazdych 20 ms z ms20()
+     *  a take po nacteni snapshotu, kdy emulace muze byt pozastavena. */
+    public void redrawScreen() {
 // zjisti jestli se má zobrazovat grafika        
         zobrgr=graf.Enabled&&graf.ShowGR&&cfg.grafik;
         
@@ -684,7 +697,11 @@ public class Iq extends Thread
                    }
                    return rVal;
             case 0xD4:
-                return graf.rpD4();
+                if (cfg.grafik) {
+                    return graf.rpD4();
+                } else {
+                    return 0xFF;
+                }
                          
             case 0xF8:
                 if (cfg.getSDRom()) {
@@ -992,5 +1009,391 @@ public class Iq extends Thread
 
     public void setTapeInvert(boolean inverted) {
         tapeinv = inverted;
+    }
+
+    // ========================================================================
+    //  Snapshoty .isn (signatura "ISN") - obdoba .osn z emulatoru Ondry.
+    //
+    //  Uklada se: CPU i8080/8085, cela RAM (64 KB), VRAM, stav prepinani
+    //  pameti, 8255, 8259, latch portu 0x80, magnetofonove priznaky a modul
+    //  Grafik. Neuklada se SD-ROM (emulovana ATmega ve vlastnim vlakne),
+    //  radic Disc2 s obrazy disket, poloha pasky ani zvukovy buffer.
+    //
+    //  T-stavy ani nSpeed se neukladaji - jsou to volne bezici citac,
+    //  resp. uzivatelska preference okna, ne stav stroje.
+    // ========================================================================
+
+    private static final int ISN_VERSION = 1;
+
+    private String strLastSnapshotError = "";
+
+    public String getLastSnapshotError() {
+        return strLastSnapshotError;
+    }
+
+    /** Blok konfigurace modulu, ktery se uklada do hlavicky snapshotu. */
+    private byte[] snapshotConfigBlock() {
+        return new byte[] {
+            cfg.getMain(),
+            cfg.getMonitor(),
+            cfg.getVideo(),
+            (byte) (cfg.getMem64() ? 1 : 0),
+            (byte) (cfg.getGrafik() ? 1 : 0),
+            (byte) (cfg.getSDRom() ? 1 : 0),
+            (byte) (cfg.getDisc2() ? 1 : 0),
+            (byte) (cfg.getAudio() ? 1 : 0),
+            (byte) (cfg.getSmartKbd() ? 1 : 0),
+            (byte) (cfg.V64ena32 ? 1 : 0)
+        };
+    }
+
+    private static String mainModuleName(int b) {
+        switch (b) {
+            case 0:  return "žádný";
+            case 1:  return "BASIC6";
+            case 2:  return "BASIC G";
+            case 3:  return "AMOS";
+            default: return "?";
+        }
+    }
+
+    private static String monitorName(int b) {
+        switch (b) {
+            case 10: return "standardní";
+            case 11: return "disassembler";
+            case 12: return "CP/M Komenium";
+            case 13: return "CP/M Felicie";
+            default: return "?";
+        }
+    }
+
+    private static void diff(StringBuilder sb, String what, String inFile, String current) {
+        if (!inFile.equals(current)) {
+            sb.append("    ").append(what).append(": snapshot = ").append(inFile)
+              .append(", nastaveno = ").append(current).append('\n');
+        }
+    }
+
+    private static String onOff(int b) {
+        return b != 0 ? "zapnuto" : "vypnuto";
+    }
+
+    /** Porovna konfiguraci ze snapshotu s aktualni. Vraci null pri shode,
+     *  jinak citelny seznam rozdilu pro uzivatele. */
+    private String checkSnapshotConfig(byte[] fileCfg) {
+        byte[] cur = snapshotConfigBlock();
+        StringBuilder sb = new StringBuilder();
+
+        diff(sb, "Hlavní modul", mainModuleName(fileCfg[0]), mainModuleName(cur[0]));
+        diff(sb, "Monitor", monitorName(fileCfg[1]), monitorName(cur[1]));
+        diff(sb, "Video", fileCfg[2] == cfg.VIDEO64 ? "64 znaků" : "32 znaků",
+                          cur[2] == cfg.VIDEO64 ? "64 znaků" : "32 znaků");
+        diff(sb, "Paměť 64 KB", onOff(fileCfg[3]), onOff(cur[3]));
+        diff(sb, "Grafik", onOff(fileCfg[4]), onOff(cur[4]));
+        diff(sb, "SD-ROM", onOff(fileCfg[5]), onOff(cur[5]));
+        diff(sb, "Disc2", onOff(fileCfg[6]), onOff(cur[6]));
+        diff(sb, "Zvuk", onOff(fileCfg[7]), onOff(cur[7]));
+        diff(sb, "Zdvojování na 32 znaků", onOff(fileCfg[9]), onOff(cur[9]));
+
+        return sb.length() == 0 ? null : sb.toString();
+    }
+
+    private static void write16(BufferedOutputStream fOut, int word) throws IOException {
+        fOut.write(word & 0xff);
+        fOut.write((word >>> 8) & 0xff);
+    }
+
+    private static int read8(BufferedInputStream fIn) throws IOException {
+        int b = fIn.read();
+        if (b < 0) {
+            throw new EOFException("Neočekávaný konec snapshotu");
+        }
+        return b;
+    }
+
+    private static int read16(BufferedInputStream fIn) throws IOException {
+        int lo = read8(fIn);
+        return lo | (read8(fIn) << 8);
+    }
+
+    // ---- rychly slot (Ctrl+F8 / Ctrl+F9) ---------------------------------------
+    //
+    // Jeden pevne dany soubor v adresari pro docasne soubory. Prezije
+    // vypnuti a zapnuti emulatoru, restart pocitace uz nutne ne - coz je
+    // presne to, co se od rychleho slotu ceka.
+
+    private String strQuickSlotPath = null;
+
+    public String getQuickSlotPath() {
+        if (strQuickSlotPath == null) {
+            String tmp = System.getProperty("java.io.tmpdir");
+            if (tmp == null || tmp.isEmpty()) {
+                tmp = ".";
+            }
+            if (!tmp.endsWith(File.separator)) {
+                tmp += File.separator;
+            }
+            strQuickSlotPath = tmp + "jiq151-quickslot.isn";
+        }
+        return strQuickSlotPath;
+    }
+
+    /** Rychle ulozeni do pevneho slotu; predchozi obsah se prepise. */
+    public boolean quickSave() {
+        return saveSnapshot(getQuickSlotPath());
+    }
+
+    /** Rychle nacteni z pevneho slotu. */
+    public boolean quickLoad() {
+        if (!new File(getQuickSlotPath()).exists()) {
+            strLastSnapshotError = "Rychlý slot je zatím prázdný – nejdřív uložte stav klávesami Ctrl+F8.";
+            return false;
+        }
+        return loadSnapshot(getQuickSlotPath());
+    }
+
+    /** Ulozi kompletni stav stroje do souboru .isn.
+     *  @return true pri uspechu, jinak viz getLastSnapshotError() */
+    public boolean saveSnapshot(String filename) {
+        strLastSnapshotError = "";
+        BufferedOutputStream fOut = null;
+        try {
+            fOut = new BufferedOutputStream(new FileOutputStream(filename));
+
+            // signatura + verze
+            fOut.write('I');
+            fOut.write('S');
+            fOut.write('N');
+            fOut.write(ISN_VERSION);
+
+            // konfigurace modulu
+            fOut.write(snapshotConfigBlock());
+
+            // CPU i8080/8085
+            int af = cpu.getRegAF();
+            fOut.write((af >>> 8) & 0xff);          // A
+            fOut.write(af & 0xff);                  // F
+            fOut.write(cpu.getRegB());
+            fOut.write(cpu.getRegC());
+            fOut.write(cpu.getRegD());
+            fOut.write(cpu.getRegE());
+            fOut.write(cpu.getRegH());
+            fOut.write(cpu.getRegL());
+            write16(fOut, cpu.getRegSP());
+            write16(fOut, cpu.getRegPC());
+            write16(fOut, cpu.getMemPtr());
+            fOut.write(cpu.getRegSim());
+            int cpuFlags = 0;
+            if (cpu.isPendingEI())  { cpuFlags |= 1; }
+            if (cpu.isActiveInt())  { cpuFlags |= 2; }
+            if (cpu.isHalted())     { cpuFlags |= 4; }
+            fOut.write(cpuFlags);
+
+            // stav stroje a prepinani pameti
+            fOut.write(port80 & 0xff);
+            fOut.write(mem.isBootstrap() ? 1 : 0);
+            fOut.write(mem.getAmosBank() < 0 ? 0xff : mem.getAmosBank());
+            fOut.write(mem.isDisc2Mounted() ? 1 : 0);
+            int tapeFlags = 0;
+            if (khz1)      { tapeFlags |= 1; }
+            if (tapein)    { tapeFlags |= 2; }
+            if (tapeo)     { tapeFlags |= 4; }
+            if (tapeout)   { tapeFlags |= 8; }
+            if (tapestart) { tapeFlags |= 16; }
+            if (tapeinv)   { tapeFlags |= 32; }
+            fOut.write(tapeFlags);
+            fOut.write(0);                          // rezerva
+
+            // 8255 (CWR, PC, PB, PA, preruseni)
+            int[] pioState = pio.getState();
+            for (int i = 0; i < 5; i++) {
+                fOut.write(pioState[i] & 0xff);
+            }
+
+            // 8259
+            PicState ps = ic.getPicSate();
+            fOut.write(ps.icw1 & 0xff);
+            fOut.write(ps.icw2 & 0xff);
+            fOut.write(ps.icw3 & 0xff);
+            fOut.write(ps.icw4 & 0xff);
+            fOut.write(ps.ocw1 & 0xff);
+            fOut.write(ps.ocw2 & 0xff);
+            fOut.write(ps.ocw3 & 0xff);
+            fOut.write(ps.irr & 0xff);
+            fOut.write(ps.isr & 0xff);
+            fOut.write(ps.state.ordinal());
+            fOut.write(ps.intack.ordinal());
+
+            // Grafik
+            if (cfg.grafik) {
+                fOut.write(1);
+                fOut.write(graf.D0 & 0xff);
+                fOut.write(graf.D1 & 0xff);
+                fOut.write(graf.D2 & 0xff);
+                int gFlags = 0;
+                if (graf.Enabled)   { gFlags |= 1; }
+                if (graf.ShowGR)    { gFlags |= 2; }
+                if (graf.BitAcces)  { gFlags |= 4; }
+                if (graf.PenOn)     { gFlags |= 8; }
+                fOut.write(gFlags);
+                graf.saveSnapshot(fOut);
+            } else {
+                fOut.write(0);
+            }
+
+            // pamet
+            mem.saveSnapshotRam(fOut);
+            mem.saveSnapshotVRam(fOut);
+
+            fOut.close();
+            fOut = null;
+            return true;
+        } catch (IOException ex) {
+            strLastSnapshotError = "Snapshot se nepodařilo uložit: " + ex.getMessage();
+            Logger.getLogger(Iq.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        } finally {
+            if (fOut != null) {
+                try { fOut.close(); } catch (IOException ex) { }
+            }
+        }
+    }
+
+    /** Nacte stav stroje ze souboru .isn. Pri chybne signature nebo neshode
+     *  konfigurace modulu se stroj vubec nezmeni.
+     *  @return true pri uspechu, jinak viz getLastSnapshotError() */
+    public boolean loadSnapshot(String filename) {
+        strLastSnapshotError = "";
+        BufferedInputStream fIn = null;
+        try {
+            fIn = new BufferedInputStream(new FileInputStream(filename));
+
+            // signatura se na rozdil od .osn skutecne kontroluje
+            if (read8(fIn) != 'I' || read8(fIn) != 'S' || read8(fIn) != 'N') {
+                strLastSnapshotError = "Toto není snapshot IQ 151 (chybí signatura ISN).";
+                return false;
+            }
+            int version = read8(fIn);
+            if (version != ISN_VERSION) {
+                strLastSnapshotError = "Nepodporovaná verze snapshotu: " + version
+                        + " (tato verze emulátoru umí " + ISN_VERSION + ").";
+                return false;
+            }
+
+            byte[] fileCfg = new byte[10];
+            for (int i = 0; i < fileCfg.length; i++) {
+                fileCfg[i] = (byte) read8(fIn);
+            }
+            String rozdily = checkSnapshotConfig(fileCfg);
+            if (rozdily != null) {
+                strLastSnapshotError = "Snapshot byl uložen s jinou konfigurací modulů.\n"
+                        + "Nastavte v Tools → Settings:\n" + rozdily;
+                return false;
+            }
+
+            // od tohoto mista uz se stroj meni
+            mem.Reset(false);       // prebuduje tabulky stranek, RAM nemaze
+
+            // CPU
+            int a = read8(fIn);
+            int f = read8(fIn);
+            cpu.setRegAF((a << 8) | f);
+            cpu.setRegB(read8(fIn));
+            cpu.setRegC(read8(fIn));
+            cpu.setRegD(read8(fIn));
+            cpu.setRegE(read8(fIn));
+            cpu.setRegH(read8(fIn));
+            cpu.setRegL(read8(fIn));
+            cpu.setRegSP(read16(fIn));
+            cpu.setRegPC(read16(fIn));
+            cpu.setMemPtr(read16(fIn));
+            cpu.setRegSim(read8(fIn));
+            int cpuFlags = read8(fIn);
+            cpu.setPendingEI((cpuFlags & 1) != 0);
+            cpu.setActiveInt((cpuFlags & 2) != 0);
+            cpu.setHalted((cpuFlags & 4) != 0);
+
+            // stav stroje a prepinani pameti
+            port80 = read8(fIn);
+            boolean bootstrap = read8(fIn) != 0;
+            int amosBank = read8(fIn);
+            boolean disc2Mounted = read8(fIn) != 0;
+            int tapeFlags = read8(fIn);
+            khz1      = (tapeFlags & 1) != 0;
+            tapein    = (tapeFlags & 2) != 0;
+            tapeo     = (tapeFlags & 4) != 0;
+            tapeout   = (tapeFlags & 8) != 0;
+            tapestart = (tapeFlags & 16) != 0;
+            tapeinv   = (tapeFlags & 32) != 0;
+            read8(fIn);                             // rezerva
+
+            // 8255
+            int[] pioState = new int[5];
+            for (int i = 0; i < 5; i++) {
+                pioState[i] = read8(fIn);
+            }
+            pio.setState(pioState);
+
+            // 8259
+            PicState ps = new PicState();
+            ps.icw1 = read8(fIn);
+            ps.icw2 = read8(fIn);
+            ps.icw3 = read8(fIn);
+            ps.icw4 = read8(fIn);
+            ps.ocw1 = read8(fIn);
+            ps.ocw2 = read8(fIn);
+            ps.ocw3 = read8(fIn);
+            ps.irr  = read8(fIn);
+            ps.isr  = read8(fIn);
+            ps.state  = Pic.init.values()[read8(fIn) % Pic.init.values().length];
+            ps.intack = Pic.iack.values()[read8(fIn) % Pic.iack.values().length];
+            ic.setPicSate(ps);
+
+            // prepnuti pameti az po mem.Reset()
+            mem.setBootstrap(bootstrap);
+            if (amosBank != 0xff) {
+                mem.SwitchAmos(amosBank);
+            }
+            if (disc2Mounted) {
+                mem.mountDisc2();
+                if (floppyCtrl != null) {
+                    floppyCtrl.dis2mnt = true;
+                }
+            }
+
+            // Grafik
+            if (read8(fIn) != 0) {
+                graf.D0 = read8(fIn);
+                graf.D1 = read8(fIn);
+                graf.D2 = read8(fIn);
+                int gFlags = read8(fIn);
+                graf.Enabled  = (gFlags & 1) != 0;
+                graf.ShowGR   = (gFlags & 2) != 0;
+                graf.BitAcces = (gFlags & 4) != 0;
+                graf.PenOn    = (gFlags & 8) != 0;
+                graf.loadSnapshot(fIn);
+            }
+
+            // pamet
+            mem.loadSnapshotRam(fIn);
+            mem.loadSnapshotVRam(fIn);
+
+            fIn.close();
+            fIn = null;
+
+            key.Reset();            // aby po nacteni neuvizla klavesa
+            redrawScreen();
+            return true;
+        } catch (IOException ex) {
+            if (strLastSnapshotError.isEmpty()) {
+                strLastSnapshotError = "Snapshot se nepodařilo načíst: " + ex.getMessage();
+            }
+            Logger.getLogger(Iq.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        } finally {
+            if (fIn != null) {
+                try { fIn.close(); } catch (IOException ex) { }
+            }
+        }
     }
 }

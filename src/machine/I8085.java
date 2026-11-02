@@ -784,7 +784,7 @@ public class I8085 {
                 intr();
             }
 
-            if (breakpointAt[regPC]) { 
+            if (breakpointAt[regPC & 0xFFFF]) { 
                 if ((utils.Config.sdrom) && (utils.Config.sdromautorun) && (regPC == ((Iq) NotifyImpl).nAutoRunBreakAddress) && (((Iq) NotifyImpl).bAutoRunAfterReset)) {
                     //spusteni SDROM Autorun
                     setBreakpoint(regPC, false);

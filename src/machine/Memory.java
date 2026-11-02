@@ -30,6 +30,11 @@ public final class Memory {
     private byte[][] Assembler = new byte[16][PAGE_SIZE];
     private byte[][] Disc2 = new byte[2][PAGE_SIZE];
 
+    // stav prepinani pameti - potreba pro snapshoty (.isn)
+    private int amosBank = -1;
+    private boolean bootstrap = false;
+    private boolean disc2Mounted = false;
+
     private byte[][] readPages = new byte[64][];
     private byte[][] writePages = new byte[64][];
     private byte[] fakeROM = new byte[PAGE_SIZE]; 
@@ -58,6 +63,10 @@ public final class Memory {
             fakeRAM[i] = (byte) 255;
         }
         
+        amosBank = -1;
+        bootstrap = false;
+        disc2Mounted = false;
+
         int er = cf.getMem64() ? 64:32;
         
         for(int i=0; i<60; i++) {
@@ -197,6 +206,7 @@ public final class Memory {
     }  
     
     public void setBootstrap(boolean b) {
+        bootstrap = b;
         if (b) {
             readPages[0] = Monitor[2];
             writePages[0] = Ram[0];
@@ -211,6 +221,7 @@ public final class Memory {
     }
     
     public void mountDisc2() {
+        disc2Mounted = true;
         readPages[57] = Disc2[1];
         writePages[57] = fakeROM;
         readPages[56] = Disc2[0];
@@ -218,6 +229,7 @@ public final class Memory {
     }
     
     public void SwitchAmos(int hodn) {
+        amosBank = hodn;
         if (hodn == 0) {
             readPages[47] = Pascal[15];
             writePages[47] = fakeROM;
@@ -340,8 +352,59 @@ public final class Memory {
         }    
     }
     
+    public int getAmosBank() {
+        return amosBank;
+    }
+
+    public boolean isBootstrap() {
+        return bootstrap;
+    }
+
+    public boolean isDisc2Mounted() {
+        return disc2Mounted;
+    }
+
+    // ---- snapshot (.isn) ----------------------------------------------------
+
+    private void writePages(OutputStream fOut, byte[][] pages) throws IOException {
+        for (byte[] page : pages) {
+            fOut.write(page);
+        }
+    }
+
+    /** Nacte stranky; InputStream.read(byte[]) negarantuje naplneni celeho pole,
+     *  proto se cte ve smycce a kratky soubor je hlasen jako chyba. */
+    private void readPages(InputStream fIn, byte[][] pages) throws IOException {
+        for (byte[] page : pages) {
+            int done = 0;
+            while (done < PAGE_SIZE) {
+                int n = fIn.read(page, done, PAGE_SIZE - done);
+                if (n < 0) {
+                    throw new EOFException("Neocekavany konec snapshotu");
+                }
+                done += n;
+            }
+        }
+    }
+
+    public void saveSnapshotRam(OutputStream fOut) throws IOException {
+        writePages(fOut, Ram);
+    }
+
+    public void loadSnapshotRam(InputStream fIn) throws IOException {
+        readPages(fIn, Ram);
+    }
+
+    public void saveSnapshotVRam(OutputStream fOut) throws IOException {
+        writePages(fOut, VRam);
+    }
+
+    public void loadSnapshotVRam(InputStream fIn) throws IOException {
+        readPages(fIn, VRam);
+    }
+
     public byte readByte(int address) {
-        return readPages[address >>> PAGE_BIT][address & PAGE_MASK];
+        return readPages[(address & 0xFFFF) >>> PAGE_BIT][(address & 0xFFFF) & PAGE_MASK];
     }
     
     public void writeByte(int address, byte value) {

@@ -277,7 +277,7 @@ public class SDRom extends Thread implements Pio8255Notify {
 
     void sendbyte(int c) {
         //vlozi bajt na portA
-        pioStapper.PeripheralWriteByte(pioStapper.PP_PortA, c);
+        pioStapper.PeripheralWriteByte(pioStapper.PP_PortA, c & 0xFF);
     }
 
     void sendstrobe(int v) {

@@ -73,6 +73,7 @@ public class JIQ151 extends javax.swing.JFrame {
      */
     public JIQ151() {
         initComponents();
+        initSnapshotMenu();
         setIconImage((new ImageIcon(getClass().getResource("/icons/iq.png")).getImage()));
         //presun polozky menu About doprava
         jMenuBar1.remove(jAbout);
@@ -885,6 +886,173 @@ public class JIQ151 extends javax.swing.JFrame {
         return strRet;
     }  
     
+    // ---- snapshoty .isn ------------------------------------------------
+    //
+    // Polozky menu jsou pridavany rucne (mimo bloky //GEN-BEGIN), aby nebylo
+    // nutne menit JIQ151.form a rozejit se s NetBeans.
+
+    private final javax.swing.JMenuItem jLoadSnapshot = new javax.swing.JMenuItem();
+    private final javax.swing.JMenuItem jSaveSnapshot = new javax.swing.JMenuItem();
+    private final javax.swing.JMenuItem jQuickSave = new javax.swing.JMenuItem();
+    private final javax.swing.JMenuItem jQuickLoad = new javax.swing.JMenuItem();
+
+    private void initSnapshotMenu() {
+        // Klavesnice IQ 151 obsazuje F1-F7 a F12, F7 uz ma navic menu Reset.
+        // Snapshoty: F8 save, F9 load, Ctrl+F8 quick save, Ctrl+F9 quick load.
+        jLoadSnapshot.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F9, 0));
+        jLoadSnapshot.setText("Load snapshot");
+        jLoadSnapshot.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                jLoadSnapshotActionPerformed(evt);
+            }
+        });
+
+        jSaveSnapshot.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F8, 0));
+        jSaveSnapshot.setText("Save snapshot");
+        jSaveSnapshot.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                jSaveSnapshotActionPerformed(evt);
+            }
+        });
+
+        jQuickSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F8, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jQuickSave.setText("Quick save");
+        jQuickSave.setToolTipText("Uloží stav do pevného rychlého slotu");
+        jQuickSave.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                jQuickSaveActionPerformed(evt);
+            }
+        });
+
+        jQuickLoad.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F9, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jQuickLoad.setText("Quick load");
+        jQuickLoad.setToolTipText("Načte stav z pevného rychlého slotu");
+        jQuickLoad.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                jQuickLoadActionPerformed(evt);
+            }
+        });
+
+        // vlozit nad screenshot, tedy pred posledni separator a Exit
+        int pos = jMenu1.getMenuComponentCount();
+        for (int i = 0; i < jMenu1.getMenuComponentCount(); i++) {
+            if (jMenu1.getMenuComponent(i) == jScreenshot) {
+                pos = i;
+                break;
+            }
+        }
+        jMenu1.insertSeparator(pos);     // oddeli Screenshot
+        jMenu1.insert(jQuickLoad, pos);
+        jMenu1.insert(jQuickSave, pos);
+        jMenu1.insert(jLoadSnapshot, pos);
+        jMenu1.insert(jSaveSnapshot, pos);
+        jMenu1.insertSeparator(pos);
+    }
+
+    private void jLoadSnapshotActionPerformed(java.awt.event.ActionEvent evt) {
+        boolean pau = m.isPaused();
+        m.stopEmulation();
+
+        fc.setDialogTitle("Open snapshot");
+        utils.Config.LoadConfig();
+        fc.setCurrentDirectory(new File(utils.Config.nullToEmpty(new File(utils.Config.strSnapFilePath).getParent())));
+        fc.setSelectedFile(new File(utils.Config.strSnapFilePath));
+        fc.resetChoosableFileFilters();
+        fc.setAcceptAllFileFilterUsed(true);
+        fc.setFileFilter(new FileNameExtensionFilter("IQ151 snapshots", "isn"));
+        int val = fc.showOpenDialog(this);
+
+        if (val == JFileChooser.APPROVE_OPTION) {
+            try {
+                String strSnap = fc.getSelectedFile().getCanonicalPath();
+                if (!getExtension(strSnap).equalsIgnoreCase("isn")) {
+                    strSnap += ".isn";
+                }
+                if (m.loadSnapshot(strSnap)) {
+                    utils.Config.strSnapFilePath = strSnap;
+                    utils.Config.SaveConfig();
+                } else {
+                    JOptionPane.showMessageDialog(this, m.getLastSnapshotError(),
+                            "Snapshot nenačten", JOptionPane.WARNING_MESSAGE);
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(JIQ151.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        if (!pau) {
+            m.startEmulation();
+        }
+    }
+
+    private void jSaveSnapshotActionPerformed(java.awt.event.ActionEvent evt) {
+        boolean pau = m.isPaused();
+        m.stopEmulation();
+
+        fc.setDialogTitle("Save snapshot");
+        utils.Config.LoadConfig();
+        fc.setCurrentDirectory(new File(utils.Config.nullToEmpty(new File(utils.Config.strSnapFilePath).getParent())));
+        fc.setSelectedFile(new File(removeExtension(getNextFileName(utils.Config.strSnapFilePath, "snap01"))));
+        fc.resetChoosableFileFilters();
+        fc.setAcceptAllFileFilterUsed(true);
+        fc.setFileFilter(new FileNameExtensionFilter("IQ151 snapshots", "isn"));
+        int val = fc.showSaveDialog(this);
+
+        if (val == JFileChooser.APPROVE_OPTION) {
+            try {
+                String strSnap = fc.getSelectedFile().getCanonicalPath();
+                if (!getExtension(strSnap).equalsIgnoreCase("isn")) {
+                    strSnap += ".isn";
+                }
+                if (m.saveSnapshot(strSnap)) {
+                    utils.Config.strSnapFilePath = strSnap;
+                    utils.Config.SaveConfig();
+                } else {
+                    JOptionPane.showMessageDialog(this, m.getLastSnapshotError(),
+                            "Snapshot neuložen", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(JIQ151.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        if (!pau) {
+            m.startEmulation();
+        }
+    }
+
+    private void jQuickSaveActionPerformed(java.awt.event.ActionEvent evt) {
+        boolean pau = m.isPaused();
+        m.stopEmulation();
+
+        if (!m.quickSave()) {
+            JOptionPane.showMessageDialog(this, m.getLastSnapshotError(),
+                    "Snapshot neuložen", JOptionPane.ERROR_MESSAGE);
+        }
+
+        if (!pau) {
+            m.startEmulation();
+        }
+    }
+
+    private void jQuickLoadActionPerformed(java.awt.event.ActionEvent evt) {
+        boolean pau = m.isPaused();
+        m.stopEmulation();
+
+        if (!m.quickLoad()) {
+            JOptionPane.showMessageDialog(this, m.getLastSnapshotError(),
+                    "Snapshot nenačten", JOptionPane.WARNING_MESSAGE);
+        }
+
+        if (!pau) {
+            m.startEmulation();
+        }
+    }
+
     private void jScreenshotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jScreenshotActionPerformed
 
         BufferedImage shot = m.getImage();

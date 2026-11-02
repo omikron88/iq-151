@@ -47,6 +47,7 @@ public class Config {
     public static int nSaveFromAddress = 0;
     public static int nSaveToAddress = 0;
     public static String strShotFilePath = "";
+    public static String strSnapFilePath = "";
     public static boolean bDisc2 = false;
     public static String strFlop1FilePath = "";
     public static String strFlop2FilePath = "";
@@ -106,6 +107,7 @@ public class Config {
         prop.setProperty("BINSAVEADDRESSFROM", String.valueOf(nSaveFromAddress));
         prop.setProperty("BINSAVEADDRESSTO", String.valueOf(nSaveToAddress));
         prop.setProperty("SHOTFILEPATH", String.valueOf(strShotFilePath));
+        prop.setProperty("SNAPFILEPATH", String.valueOf(strSnapFilePath));
         prop.setProperty("FLOP1FILEPATH", String.valueOf(strFlop1FilePath));
         prop.setProperty("FLOP1RW", String.valueOf(bFlop1RW));
         prop.setProperty("FLOP1INSERTED", String.valueOf(bFlop1Inserted));
@@ -222,6 +224,7 @@ public class Config {
         video64 = parseIntSafe(prop.getProperty("VIDEO64"), 0);
         mem64 = parseBooleanSafe(prop.getProperty("MEM64"), false);
         strShotFilePath = nullToEmpty(prop.getProperty("SHOTFILEPATH"));
+        strSnapFilePath = nullToEmpty(prop.getProperty("SNAPFILEPATH"));
         bDisc2 = parseBooleanSafe(prop.getProperty("BDISC2"), false);
         strFlop1FilePath = nullToEmpty(prop.getProperty("FLOP1FILEPATH"));
         strFlop2FilePath = nullToEmpty(prop.getProperty("FLOP2FILEPATH"));
